@@ -1,0 +1,11 @@
+C:\Projects\Misc\Personal\Chess\Chess.Engine\bin\Debug\net8.0\Chess.Engine.deps.json
+C:\Projects\Misc\Personal\Chess\Chess.Engine\bin\Debug\net8.0\Chess.Engine.dll
+C:\Projects\Misc\Personal\Chess\Chess.Engine\bin\Debug\net8.0\Chess.Engine.pdb
+C:\Projects\Misc\Personal\Chess\Chess.Engine\obj\Debug\net8.0\Chess.Engine.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\Misc\Personal\Chess\Chess.Engine\obj\Debug\net8.0\Chess.Engine.AssemblyInfoInputs.cache
+C:\Projects\Misc\Personal\Chess\Chess.Engine\obj\Debug\net8.0\Chess.Engine.AssemblyInfo.cs
+C:\Projects\Misc\Personal\Chess\Chess.Engine\obj\Debug\net8.0\Chess.Engine.csproj.CoreCompileInputs.cache
+C:\Projects\Misc\Personal\Chess\Chess.Engine\obj\Debug\net8.0\Chess.Engine.dll
+C:\Projects\Misc\Personal\Chess\Chess.Engine\obj\Debug\net8.0\refint\Chess.Engine.dll
+C:\Projects\Misc\Personal\Chess\Chess.Engine\obj\Debug\net8.0\Chess.Engine.pdb
+C:\Projects\Misc\Personal\Chess\Chess.Engine\obj\Debug\net8.0\ref\Chess.Engine.dll
