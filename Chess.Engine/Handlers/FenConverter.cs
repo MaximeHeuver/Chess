@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Chess.Engine.GameModels;
+using System.Text;
 
 namespace Chess.Engine.Handlers
 {

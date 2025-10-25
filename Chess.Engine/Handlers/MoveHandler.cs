@@ -1,4 +1,6 @@
-﻿using Chess.Engine.Moves;
+﻿using Chess.Engine.GameModels;
+using Chess.Engine.Moves;
+using Chess.Engine.Moves.MoveSideEffects;
 using Chess.Engine.Pieces;
 using System.Text.RegularExpressions;
 
@@ -43,19 +45,32 @@ namespace Chess.Engine.Handlers
 
                 while (true)
                 {
-                    var newIndex = square.BoardIndex + pieceMovementVector * iteration;
+                    var newIndex = square.BoardIndex + pieceMovementVector.Vector * iteration;
 
-                    if (!IsBoardIndexReachable(square, pieceMovementVector, newIndex))
+                    if (!IsBoardIndexReachable(square, pieceMovementVector.Vector, newIndex))
                     {
                         break;
                     }
 
-                    var canPieceMoveAwayToSquare = CanPieceMoveAwayToSquare(square, board, newIndex);
+                    var canPieceMoveAwayToSquare = CanPieceMoveAwayToSquare(square, board, newIndex, pieceMovementVector.CanMovementCapture);
 
-                    if (canPieceMoveAwayToSquare)
+                    var isKingInCheckAfterMove = IsKingInCheckAfterMove();
+
+                    if (!canPieceMoveAwayToSquare || isKingInCheckAfterMove)
                     {
-                        possibleMoves.Add(new Move(square, board[newIndex]));
+                        break;
                     }
+
+                    MoveSideEffect? moveSideEffect = null;
+
+                    if (IsMovePromotion(piece, board[newIndex]))
+                    {
+                        moveSideEffect = new PromotionSideEffect(new Queen(piece.Side));
+                    }
+
+                    var move = new Move(square, board[newIndex], moveSideEffect);
+
+                    possibleMoves.Add(move);
 
                     if (!piece.CanPieceSlide)
                     {
@@ -66,7 +81,35 @@ namespace Chess.Engine.Handlers
                 }
             }
 
+            if (piece is Pawn)
+            {
+                //check for en passant
+            }
+            else if (piece is King)
+            {
+                //check for castles
+            }
+
             return possibleMoves;
+        }
+
+
+        private static bool IsMovePromotion(Piece piece, Square destination)
+        {
+            return piece is Pawn && piece!.Side == Side.White
+                ? Enumerable.Range(0, 7).Contains(destination.BoardIndex)
+                : Enumerable.Range(56, 63).Contains(destination.BoardIndex);
+        }
+
+        private static bool IsKingInCheckAfterMove()
+        {
+            // deep copy board state
+
+            // execute move
+
+            // check for king in check
+
+            return false;
         }
 
         public static bool IsKingInCheck(Side sideOfKing, List<Square> board)
@@ -89,15 +132,15 @@ namespace Chess.Engine.Handlers
 
             var attackPieceType = new T();
 
-            foreach (var pieceMovementVector in attackPieceType.CaptureVectors)
+            foreach (var pieceMovementVector in attackPieceType.MovementVectors)
             {
                 var iteration = 1;
 
                 while (true)
                 {
-                    var newIndex = square.BoardIndex + pieceMovementVector * iteration;
+                    var newIndex = square.BoardIndex + pieceMovementVector.Vector * iteration;
 
-                    if (!IsBoardIndexReachable(square, pieceMovementVector, newIndex))
+                    if (!IsBoardIndexReachable(square, pieceMovementVector.Vector, newIndex))
                     {
                         break;
                     }
@@ -154,12 +197,14 @@ namespace Chess.Engine.Handlers
         public static bool CanPieceMoveAwayToSquare(
             Square squareWithPiece,
             IReadOnlyList<Square> board,
-            int destinationIndex)
+            int destinationIndex,
+            bool isCaptureAllowed)
         {
             var destinationSquare = board[destinationIndex];
             var sideOfPieceToMove = squareWithPiece.Piece!.Side;
 
             return destinationSquare.Piece == null ||
+                   isCaptureAllowed &&
                    destinationSquare.Piece.Side != sideOfPieceToMove &&
                    destinationSquare.Piece is not King;
         }

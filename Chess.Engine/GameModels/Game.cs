@@ -1,7 +1,7 @@
 ﻿using Chess.Engine.Moves;
 using Chess.Engine.Pieces;
 
-namespace Chess.Engine
+namespace Chess.Engine.GameModels
 {
     public class Game
     {

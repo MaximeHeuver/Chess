@@ -1,4 +1,4 @@
-﻿namespace Chess.Engine
+﻿namespace Chess.Engine.GameModels
 {
     public enum BoardSide
     {

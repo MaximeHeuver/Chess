@@ -1,13 +1,14 @@
-﻿namespace Chess.Engine.Pieces
+﻿using Chess.Engine.GameModels;
+
+namespace Chess.Engine.Pieces
 {
     public abstract class Piece
     {
         public Side Side { get; }
         public abstract int Value { get; }
         public abstract char NotationCharacter { get; }
-        public abstract int[] MovementVectors { get; }
+        public abstract List<MovementVector> MovementVectors { get; }
         public abstract bool CanPieceSlide { get; }
-        public abstract int[] CaptureVectors { get; }
 
         public bool HasPieceMoved { get; } = false;
 

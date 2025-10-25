@@ -1,6 +1,6 @@
 ﻿using Chess.Engine.Pieces;
 
-namespace Chess.Engine
+namespace Chess.Engine.GameModels
 {
     public class Square
     {
@@ -9,7 +9,7 @@ namespace Chess.Engine
 
         public Square(int boardIndex)
         {
-            this.BoardIndex = boardIndex;
+            BoardIndex = boardIndex;
         }
 
         public string PieceOccupation => Piece == null

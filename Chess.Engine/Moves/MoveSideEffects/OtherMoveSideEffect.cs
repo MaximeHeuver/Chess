@@ -1,4 +1,6 @@
-﻿namespace Chess.Engine.Moves.MoveSideEffects
+﻿using Chess.Engine.GameModels;
+
+namespace Chess.Engine.Moves.MoveSideEffects
 {
     public class OtherMoveSideEffect : MoveSideEffect
     {

@@ -1,12 +1,21 @@
-﻿namespace Chess.Engine.Pieces
+﻿using Chess.Engine.GameModels;
+
+namespace Chess.Engine.Pieces
 {
     public class Bishop : Piece
     {
         public override int Value => 3;
         public override char NotationCharacter => 'B';
-        public override int[] MovementVectors => [-9, -7, 7, 9];
+
+        public override List<MovementVector> MovementVectors { get; } =
+        [
+            new MovementVector(-9, true),
+            new MovementVector(-7, true),
+            new MovementVector(7, true),
+            new MovementVector(9, true)
+        ];
+
         public override bool CanPieceSlide => true;
-        public override int[] CaptureVectors => MovementVectors;
 
         public Bishop(Side side) : base(side)
         {

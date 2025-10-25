@@ -1,4 +1,4 @@
-﻿using Chess.Engine;
+﻿using Chess.Engine.GameModels;
 using Chess.Engine.Handlers;
 
 class Program

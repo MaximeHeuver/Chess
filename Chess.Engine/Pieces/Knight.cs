@@ -1,12 +1,25 @@
-﻿namespace Chess.Engine.Pieces
+﻿using Chess.Engine.GameModels;
+
+namespace Chess.Engine.Pieces
 {
     public class Knight : Piece
     {
         public override int Value => 3;
         public override char NotationCharacter => 'N';
-        public override int[] MovementVectors => [-17, -15, -10, -6, 6, 10, 15, 17];
+
+        public override List<MovementVector> MovementVectors { get; } =
+        [
+            new MovementVector(-17, true),
+            new MovementVector(-15, true),
+            new MovementVector(-10, true),
+            new MovementVector(-6, true),
+            new MovementVector(6, true),
+            new MovementVector(10, true),
+            new MovementVector(15, true),
+            new MovementVector(17, true)
+        ];
+
         public override bool CanPieceSlide => false;
-        public override int[] CaptureVectors => MovementVectors;
 
         public Knight(Side side) : base(side)
         {

@@ -1,4 +1,5 @@
-﻿using Chess.Engine.Moves.MoveSideEffects;
+﻿using Chess.Engine.GameModels;
+using Chess.Engine.Moves.MoveSideEffects;
 
 namespace Chess.Engine.Moves
 {
