@@ -17,7 +17,7 @@ namespace Chess.Engine.Handlers
             if (!possibleMoves.Select(x => x.Destination).Contains(move.Destination))
             {
                 throw new ArgumentException(
-                    $"destination square {move.Destination.SquareNotation} among the possible moves: {string.Join(", ", possibleMoves.Select(x => x.Destination.SquareNotation))}");
+                    $"destination square {move.Destination.SquareNotation} is not among the possible moves: {string.Join(", ", possibleMoves.Select(x => x.Destination.SquareNotation))}");
             }
 
             var sideEffect = possibleMoves.Single(x => x.Destination.Equals(move.Destination)).SideEffect;
@@ -87,18 +87,85 @@ namespace Chess.Engine.Handlers
             }
             else if (piece is King)
             {
-                //check for castles
+                if (CanKingCastle(piece.Side, BoardSide.KingSide, board))
+                {
+                    possibleMoves.Add(new Move(
+                            square,
+                            board[square.BoardIndex + 2],
+                            new OtherMoveSideEffect(board[square.BoardIndex + 3], board[square.BoardIndex + 1])));
+                }
+
+                if (CanKingCastle(piece.Side, BoardSide.QueenSide, board))
+                {
+                    possibleMoves.Add(new Move(
+                        square,
+                        board[square.BoardIndex - 3],
+                        new OtherMoveSideEffect(board[square.BoardIndex - 4], board[square.BoardIndex - 2])));
+                }
             }
 
             return possibleMoves;
+        }
+
+        private static bool CanKingCastle(Side side, BoardSide boardSide, List<Square> board)
+        {
+            if (!IsCastleOptionAvailable(side, boardSide, board))
+            {
+                return false;
+            }
+
+            var kingSquare = GetKingStartingSquare(side, board);
+
+            var indexesToCheckForAttacks = boardSide == BoardSide.KingSide
+                ? Enumerable.Range(0, 3)
+                : Enumerable.Range(-3, 4);
+
+            foreach (var indexToCheck in indexesToCheckForAttacks)
+            {
+                if (!(indexToCheck == 0 || board[kingSquare.BoardIndex + indexToCheck].Piece == null))
+                {
+                    return false;
+                }
+
+                if (IsSquareUnderAttackFromAnyPiece(board[kingSquare.BoardIndex + indexToCheck], board, kingSquare.Piece.Side))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+
+            return indexesToCheckForAttacks.All(indexToCheck =>
+                (indexToCheck == 0 || board[kingSquare.BoardIndex + indexToCheck].Piece == null) &&
+                !IsSquareUnderAttackFromAnyPiece(board[kingSquare.BoardIndex + indexToCheck], board, kingSquare.Piece.Side));
+        }
+
+        private static Square GetKingStartingSquare(Side side, List<Square> board)
+        {
+            return board[side == Side.White ? 4 : 60];
+        }
+
+        private static Square GetRookStartingSquare(Side side, BoardSide boardSide, List<Square> board)
+        {
+            return board[(boardSide == BoardSide.KingSide ? 7 : 0) + (side == Side.White ? 0 : 56)];
+        }
+
+        private static bool IsSquareUnderAttackFromAnyPiece(Square square, List<Square> board, Side side)
+        {
+            return IsSquareUnderAttackFromPiece<Queen>(square, board, side) ||
+                   IsSquareUnderAttackFromPiece<Rook>(square, board, side) ||
+                   IsSquareUnderAttackFromPiece<Bishop>(square, board, side) ||
+                   IsSquareUnderAttackFromPiece<Knight>(square, board, side) ||
+                   IsSquareUnderAttackFromPiece<King>(square, board, side) ||
+                   IsSquareUnderAttackFromPiece<Pawn>(square, board, side);
         }
 
 
         private static bool IsMovePromotion(Piece piece, Square destination)
         {
             return piece is Pawn && piece!.Side == Side.White
-                ? Enumerable.Range(0, 7).Contains(destination.BoardIndex)
-                : Enumerable.Range(56, 63).Contains(destination.BoardIndex);
+                ? Enumerable.Range(0, 8).Contains(destination.BoardIndex)
+                : Enumerable.Range(56, 8).Contains(destination.BoardIndex);
         }
 
         private static bool IsKingInCheckAfterMove()
@@ -116,23 +183,14 @@ namespace Chess.Engine.Handlers
         {
             var square = GetKingSquareFromSide(sideOfKing, board);
 
-            return IsSquareUnderAttackFromPiece<Queen>(square, board) ||
-                   IsSquareUnderAttackFromPiece<Rook>(square, board) ||
-                   IsSquareUnderAttackFromPiece<Bishop>(square, board) ||
-                   IsSquareUnderAttackFromPiece<Knight>(square, board) ||
-                   IsSquareUnderAttackFromPiece<Pawn>(square, board);
+            return IsSquareUnderAttackFromAnyPiece(square, board, sideOfKing);
         }
 
-        private static bool IsSquareUnderAttackFromPiece<T>(Square square, IReadOnlyList<Square> board) where T : Piece, new()
+        private static bool IsSquareUnderAttackFromPiece<T>(Square square, IReadOnlyList<Square> board, Side side) where T : Piece, new()
         {
-            if (square.Piece == null)
-            {
-                throw new ArgumentException($"Square: {square.SquareNotation} does not contain a piece");
-            }
-
             var attackPieceType = new T();
 
-            foreach (var pieceMovementVector in attackPieceType.MovementVectors)
+            foreach (var pieceMovementVector in attackPieceType.MovementVectors.Where(x => x.CanMovementCapture))
             {
                 var iteration = 1;
 
@@ -147,12 +205,12 @@ namespace Chess.Engine.Handlers
 
                     var piece = board[newIndex]?.Piece;
 
-                    if (piece is T && piece.Side != square.Piece.Side)
+                    if (piece is T && piece.Side != side && pieceMovementVector.CanMovementCapture)
                     {
                         return true;
                     }
 
-                    if (piece != null || attackPieceType is Knight)
+                    if (piece != null || !attackPieceType.CanPieceSlide)
                     {
                         break;
                     }
@@ -211,9 +269,9 @@ namespace Chess.Engine.Handlers
 
         public static bool IsCastleOptionAvailable(Side side, BoardSide boardSide, List<Square> board)
         {
-            var kingSquareToCheck = board[side == Side.White ? 4 : 60];
+            var kingSquareToCheck = GetKingStartingSquare(side, board);
 
-            var rookSquareToCheck = board[(boardSide == BoardSide.KingSide ? 7 : 0) + (side == Side.White ? 0 : 56)];
+            var rookSquareToCheck = GetRookStartingSquare(side, boardSide, board);
 
             return kingSquareToCheck.Piece is King &&
                    !kingSquareToCheck.Piece.HasPieceMoved &&

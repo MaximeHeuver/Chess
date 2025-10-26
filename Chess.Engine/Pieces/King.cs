@@ -17,9 +17,12 @@ namespace Chess.Engine.Pieces
             new MovementVector(8, true),
             new MovementVector(9, true)
         ];
-        public override bool CanPieceSlide => true;
+        public override bool CanPieceSlide => false;
 
         public King(Side side) : base(side)
+        {
+        }
+        public King() : base(Side.White)
         {
         }
     }
