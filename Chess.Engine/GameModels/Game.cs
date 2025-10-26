@@ -38,8 +38,8 @@ namespace Chess.Engine.GameModels
             Board[2].Piece = new Bishop(Side.White);
             Board[3].Piece = new Queen(Side.White);
             Board[4].Piece = new King(Side.White);
-            // Board[5].Piece = new Bishop(Side.White);
-            // Board[6].Piece = new Knight(Side.White);
+            Board[5].Piece = new Bishop(Side.White);
+            Board[6].Piece = new Knight(Side.White);
             Board[7].Piece = new Rook(Side.White);
 
             Board[56].Piece = new Rook(Side.Black);

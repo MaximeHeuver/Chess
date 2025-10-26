@@ -15,6 +15,12 @@ class Program
 
             Console.WriteLine();
 
+            if (MoveHandler.IsKingCheckMate(game.Turn, game))
+            {
+                Console.WriteLine($"Checkmate! {(game.Turn == Side.White ? "black" : "white")} wins!");
+                break;
+            }
+
             Console.WriteLine($"FEN notation: {FenConverter.GameToFenNotation(game)}");
 
             Console.WriteLine();

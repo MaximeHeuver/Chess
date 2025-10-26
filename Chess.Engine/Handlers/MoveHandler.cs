@@ -12,6 +12,16 @@ namespace Chess.Engine.Handlers
 
         public static void ValidateAndExecuteMove(Move move, Game game)
         {
+            if (move.Origin.Piece == null)
+            {
+                throw new ArgumentException($"{move.Origin.SquareNotation} does not contain a piece");
+            }
+
+            if (move.Origin.Piece?.Side != game.Turn)
+            {
+                throw new ArgumentException($"it is currently not the turn of {move.Origin.Piece?.Side.ToString().ToLower()}");
+            }
+
             var possibleMoves = GetPossibleMovesForPieceOnSquare(move.Origin, game);
 
             if (!possibleMoves.Select(x => x.Destination).Contains(move.Destination))
@@ -23,6 +33,20 @@ namespace Chess.Engine.Handlers
             var moveFromPossibleMoves = possibleMoves.Single(x => x.Destination.Equals(move.Destination));
 
             ExecuteMove(moveFromPossibleMoves);
+        }
+
+        public static List<Square> GetAllSquaresWithPiecesFromSide(Side side, List<Square> board)
+        {
+            return board.Where(x => x.Piece != null && x.Piece.Side == side).ToList();
+        }
+
+        public static bool IsKingCheckMate(Side sideToCheck, Game game)
+        {
+            var allPiecesFromSide = GetAllSquaresWithPiecesFromSide(sideToCheck, game.Board);
+
+            var allPossibleMoves = allPiecesFromSide.SelectMany(x => GetPossibleMovesForPieceOnSquare(x, game)).ToList();
+
+            return allPossibleMoves.Count == 0;
         }
 
         private static void ExecuteMove(Move move)
@@ -301,11 +325,6 @@ namespace Chess.Engine.Handlers
         {
             var originSquare = GetSquareFromAbbreviation(game.Board, originSquareAbbreviation);
             var destinationSquare = GetSquareFromAbbreviation(game.Board, destinationSquareAbbreviation);
-
-            if (originSquare.Piece?.Side != game.Turn)
-            {
-                throw new ArgumentException($"it is currently not the turn of {originSquare.Piece?.Side.ToString().ToLower()}");
-            }
 
             var move = new Move(originSquare, destinationSquare);
 
