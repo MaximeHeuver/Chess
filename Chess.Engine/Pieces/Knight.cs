@@ -21,6 +21,13 @@ namespace Chess.Engine.Pieces
 
         public override bool CanPieceSlide => false;
 
+        public override Piece DeepCopy()
+        {
+            return new Knight(Side == Side.White ? Side.White : Side.Black, HasPieceMoved);
+        }
+        private Knight(Side side, bool hasPieceMoved) : base(side, hasPieceMoved)
+        {
+        }
         public Knight(Side side) : base(side)
         {
         }

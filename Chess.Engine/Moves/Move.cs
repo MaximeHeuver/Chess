@@ -15,5 +15,11 @@ namespace Chess.Engine.Moves
             Destination = destination;
             SideEffect = sideEffect;
         }
+
+        public Move DeepCopy(List<Square> copiedBoard)
+        {
+            //todo maybe copy side effect as well, but I don't think that that's even relevant
+            return new Move(copiedBoard[Origin.BoardIndex], copiedBoard[Destination.BoardIndex]);
+        }
     }
 }

@@ -16,6 +16,14 @@ namespace Chess.Engine.Pieces
         ];
 
         public override bool CanPieceSlide => true;
+        public override Piece DeepCopy()
+        {
+            return new Bishop(Side == Side.White ? Side.White : Side.Black, HasPieceMoved);
+        }
+
+        private Bishop(Side side, bool hasPieceMoved) : base(side, hasPieceMoved)
+        {
+        }
 
         public Bishop(Side side) : base(side)
         {

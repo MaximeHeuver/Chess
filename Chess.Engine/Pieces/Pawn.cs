@@ -34,6 +34,13 @@ namespace Chess.Engine.Pieces
 
         public override bool CanPieceSlide => false;
 
+        public override Piece DeepCopy()
+        {
+            return new Pawn(Side == Side.White ? Side.White : Side.Black, HasPieceMoved);
+        }
+        private Pawn(Side side, bool hasPieceMoved) : base(side, hasPieceMoved)
+        {
+        }
         public Pawn(Side side) : base(side)
         {
         }

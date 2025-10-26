@@ -10,9 +10,9 @@ namespace Chess.Engine.Handlers
     {
         private static readonly Regex SquareNotationFormat = new Regex("^[a-h][1-8]$");
 
-        public static void ValidateAndExecuteMove(Move move, List<Square> board)
+        public static void ValidateAndExecuteMove(Move move, Game game)
         {
-            var possibleMoves = GetPossibleMovesForPieceOnSquare(move.Origin, board);
+            var possibleMoves = GetPossibleMovesForPieceOnSquare(move.Origin, game);
 
             if (!possibleMoves.Select(x => x.Destination).Contains(move.Destination))
             {
@@ -20,15 +20,20 @@ namespace Chess.Engine.Handlers
                     $"destination square {move.Destination.SquareNotation} is not among the possible moves: {string.Join(", ", possibleMoves.Select(x => x.Destination.SquareNotation))}");
             }
 
-            var sideEffect = possibleMoves.Single(x => x.Destination.Equals(move.Destination)).SideEffect;
+            var moveFromPossibleMoves = possibleMoves.Single(x => x.Destination.Equals(move.Destination));
 
+            ExecuteMove(moveFromPossibleMoves);
+        }
+
+        private static void ExecuteMove(Move move)
+        {
             move.Destination.Piece = move.Origin.Piece;
             move.Origin.Piece = null;
 
-            sideEffect?.Execute();
+            move.SideEffect?.Execute();
         }
 
-        public static List<Move> GetPossibleMovesForPieceOnSquare(Square square, List<Square> board)
+        public static List<Move> GetPossibleMovesForPieceOnSquare(Square square, Game game)
         {
             var piece = square.Piece;
 
@@ -52,23 +57,29 @@ namespace Chess.Engine.Handlers
                         break;
                     }
 
-                    var canPieceMoveAwayToSquare = CanPieceMoveAwayToSquare(square, board, newIndex, pieceMovementVector.CanMovementCapture);
+                    var canPieceMoveAwayToSquare = CanPieceMoveAwayToSquare(square, game.Board, newIndex, pieceMovementVector.CanMovementCapture);
 
-                    var isKingInCheckAfterMove = IsKingInCheckAfterMove();
 
-                    if (!canPieceMoveAwayToSquare || isKingInCheckAfterMove)
+                    if (!canPieceMoveAwayToSquare)
                     {
                         break;
                     }
 
                     MoveSideEffect? moveSideEffect = null;
 
-                    if (IsMovePromotion(piece, board[newIndex]))
+                    if (IsMovePromotion(piece, game.Board[newIndex]))
                     {
                         moveSideEffect = new PromotionSideEffect(new Queen(piece.Side));
                     }
 
-                    var move = new Move(square, board[newIndex], moveSideEffect);
+                    var move = new Move(square, game.Board[newIndex], moveSideEffect);
+
+                    var isKingInCheckAfterMove = IsKingInCheckAfterMove(move, game);
+
+                    if (isKingInCheckAfterMove)
+                    {
+                        break;
+                    }
 
                     possibleMoves.Add(move);
 
@@ -81,30 +92,50 @@ namespace Chess.Engine.Handlers
                 }
             }
 
-            if (piece is Pawn)
+            if (AreConditionsForEnPassantPresent(square, game))
             {
-                //check for en passant
+                var move = new Move(
+                    square,
+                    game.Board[
+                        game.LastPlayedMove.Origin.BoardIndex + ((game.LastPlayedMove.Destination.BoardIndex -
+                                                                  game.LastPlayedMove.Origin.BoardIndex) / 2)],
+                    new CaptureSideEffect(game.LastPlayedMove.Destination)
+                );
+
+                if (!IsKingInCheckAfterMove(move, game))
+                {
+                    possibleMoves.Add(move);
+                }
             }
             else if (piece is King)
             {
-                if (CanKingCastle(piece.Side, BoardSide.KingSide, board))
+                if (CanKingCastle(piece.Side, BoardSide.KingSide, game.Board))
                 {
                     possibleMoves.Add(new Move(
                             square,
-                            board[square.BoardIndex + 2],
-                            new OtherMoveSideEffect(board[square.BoardIndex + 3], board[square.BoardIndex + 1])));
+                            game.Board[square.BoardIndex + 2],
+                            new OtherMoveSideEffect(game.Board[square.BoardIndex + 3], game.Board[square.BoardIndex + 1])));
                 }
 
-                if (CanKingCastle(piece.Side, BoardSide.QueenSide, board))
+                if (CanKingCastle(piece.Side, BoardSide.QueenSide, game.Board))
                 {
                     possibleMoves.Add(new Move(
                         square,
-                        board[square.BoardIndex - 3],
-                        new OtherMoveSideEffect(board[square.BoardIndex - 4], board[square.BoardIndex - 2])));
+                        game.Board[square.BoardIndex - 3],
+                        new OtherMoveSideEffect(game.Board[square.BoardIndex - 4], game.Board[square.BoardIndex - 2])));
                 }
             }
 
             return possibleMoves;
+        }
+
+        private static bool AreConditionsForEnPassantPresent(Square square, Game game)
+        {
+            return square.Piece is Pawn &&
+                   game.LastPlayedMove?.Destination.Piece is Pawn &&
+                   Math.Abs(game.LastPlayedMove.Origin.BoardIndex - game.LastPlayedMove.Destination.BoardIndex) == 16 &&
+                   (square.BoardIndex == game.LastPlayedMove.Destination.BoardIndex - 1 ||
+                    square.BoardIndex == game.LastPlayedMove.Destination.BoardIndex + 1);
         }
 
         private static bool CanKingCastle(Side side, BoardSide boardSide, List<Square> board)
@@ -120,24 +151,9 @@ namespace Chess.Engine.Handlers
                 ? Enumerable.Range(0, 3)
                 : Enumerable.Range(-3, 4);
 
-            foreach (var indexToCheck in indexesToCheckForAttacks)
-            {
-                if (!(indexToCheck == 0 || board[kingSquare.BoardIndex + indexToCheck].Piece == null))
-                {
-                    return false;
-                }
-
-                if (IsSquareUnderAttackFromAnyPiece(board[kingSquare.BoardIndex + indexToCheck], board, kingSquare.Piece.Side))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-
             return indexesToCheckForAttacks.All(indexToCheck =>
                 (indexToCheck == 0 || board[kingSquare.BoardIndex + indexToCheck].Piece == null) &&
-                !IsSquareUnderAttackFromAnyPiece(board[kingSquare.BoardIndex + indexToCheck], board, kingSquare.Piece.Side));
+                !IsSquareUnderAttackFromAnyPiece(board[kingSquare.BoardIndex + indexToCheck], board, kingSquare.Piece!.Side));
         }
 
         private static Square GetKingStartingSquare(Side side, List<Square> board)
@@ -168,15 +184,17 @@ namespace Chess.Engine.Handlers
                 : Enumerable.Range(56, 8).Contains(destination.BoardIndex);
         }
 
-        private static bool IsKingInCheckAfterMove()
+        private static bool IsKingInCheckAfterMove(Move move, Game game)
         {
-            // deep copy board state
+            var side = move.Origin.Piece!.Side;
 
-            // execute move
+            var copiedGame = game.DeepCopy();
 
-            // check for king in check
+            var copiedMove = move.DeepCopy(copiedGame.Board);
 
-            return false;
+            ExecuteMove(copiedMove);
+
+            return IsKingInCheck(side, game.Board);
         }
 
         public static bool IsKingInCheck(Side sideOfKing, List<Square> board)
@@ -291,7 +309,7 @@ namespace Chess.Engine.Handlers
 
             var move = new Move(originSquare, destinationSquare);
 
-            MoveHandler.ValidateAndExecuteMove(move, game.Board);
+            MoveHandler.ValidateAndExecuteMove(move, game);
 
             game.LastPlayedMove = move;
 

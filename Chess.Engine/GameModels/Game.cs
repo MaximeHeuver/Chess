@@ -9,6 +9,18 @@ namespace Chess.Engine.GameModels
         public List<Square> Board { get; } = Enumerable.Range(0, 64).Select(index => new Square(index)).ToList();
         public Move? LastPlayedMove { get; set; } = null;
 
+        public Game()
+        {
+
+        }
+
+        private Game(List<Square> board, Side turn, Move? lastPlayedMove)
+        {
+            this.Board = board;
+            this.Turn = turn;
+            this.LastPlayedMove = lastPlayedMove;
+        }
+
         public void InitializeStandardGame()
         {
             foreach (var i in Enumerable.Range(8, 8))
@@ -38,6 +50,13 @@ namespace Chess.Engine.GameModels
             Board[61].Piece = new Bishop(Side.Black);
             Board[62].Piece = new Knight(Side.Black);
             Board[63].Piece = new Rook(Side.Black);
+        }
+
+        public Game DeepCopy()
+        {
+            var copiedBoard = Board.Select(x => x.DeepCopy()).ToList();
+
+            return new Game(copiedBoard, Turn == Side.White ? Side.White : Side.Black, LastPlayedMove?.DeepCopy(copiedBoard));
         }
     }
 }

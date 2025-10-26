@@ -16,5 +16,12 @@ namespace Chess.Engine.Pieces
         {
             Side = side;
         }
+        protected Piece(Side side, bool hasPieceMoved)
+        {
+            Side = side;
+            HasPieceMoved = hasPieceMoved;
+        }
+
+        public abstract Piece DeepCopy();
     }
 }
