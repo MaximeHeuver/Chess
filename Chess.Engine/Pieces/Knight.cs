@@ -9,14 +9,14 @@ namespace Chess.Engine.Pieces
 
         public override List<MovementVector> MovementVectors { get; } =
         [
-            new MovementVector(-17, true),
-            new MovementVector(-15, true),
-            new MovementVector(-10, true),
-            new MovementVector(-6, true),
-            new MovementVector(6, true),
-            new MovementVector(10, true),
-            new MovementVector(15, true),
-            new MovementVector(17, true)
+            new MovementVector(-17, MovementCaptureOption.Both),
+            new MovementVector(-15, MovementCaptureOption.Both),
+            new MovementVector(-10, MovementCaptureOption.Both),
+            new MovementVector(-6, MovementCaptureOption.Both),
+            new MovementVector(6, MovementCaptureOption.Both),
+            new MovementVector(10, MovementCaptureOption.Both),
+            new MovementVector(15, MovementCaptureOption.Both),
+            new MovementVector(17, MovementCaptureOption.Both)
         ];
 
         public override bool CanPieceSlide => false;

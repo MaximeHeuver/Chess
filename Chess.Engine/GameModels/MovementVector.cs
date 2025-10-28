@@ -3,12 +3,12 @@
     public class MovementVector
     {
         public int Vector { get; }
-        public bool CanMovementCapture { get; }
+        public MovementCaptureOption MovementCaptureOption { get; }
 
-        public MovementVector(int vector, bool canMovementCapture)
+        public MovementVector(int vector, MovementCaptureOption movementCaptureOption)
         {
             Vector = vector;
-            CanMovementCapture = canMovementCapture;
+            MovementCaptureOption = movementCaptureOption;
         }
     }
 }

@@ -1,0 +1,23 @@
+﻿@page "/"
+
+<div>
+    <div class="board">
+        @if(Game != null)
+        {
+            foreach(var row in Enumerable.Range(0, 8))
+            {
+                <div class="row">
+                    @foreach (var squareInRow in Enumerable.Range(0, 8))
+                    {
+                        <div @onclick="() => OnSquareClick((56 - (row * 8)) + squareInRow)" class="square">
+                            <p>@(Game.Board[(56 - (row * 8)) + squareInRow].Piece?.Side + " " + Game.Board[(56 - (row * 8)) + squareInRow].Piece?.NotationCharacter)</p>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+    
+    <p>Last error message: @LastErrorMessage</p>
+    <p>Last clicked piece square: @(LastSelectedPieceIndex == -1 ? "" : Game!.Board[LastSelectedPieceIndex].SquareNotation)</p>
+</div>

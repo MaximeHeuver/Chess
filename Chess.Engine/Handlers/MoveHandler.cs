@@ -98,6 +98,8 @@ namespace Chess.Engine.Handlers
 
             move.SideEffect?.Execute();
 
+            move.Destination.Piece!.HasPieceMoved = true;
+
             game.AddPosition(FenConverter.GameToFenNotation(game));
         }
 
@@ -125,7 +127,7 @@ namespace Chess.Engine.Handlers
                         break;
                     }
 
-                    var canPieceMoveAwayToSquare = CanPieceMoveAwayToSquare(square, game.Board, newIndex, pieceMovementVector.CanMovementCapture);
+                    var canPieceMoveAwayToSquare = CanPieceMoveAwayToSquare(square, game.Board, newIndex, pieceMovementVector.MovementCaptureOption);
 
 
                     if (!canPieceMoveAwayToSquare)
@@ -160,7 +162,18 @@ namespace Chess.Engine.Handlers
                 }
             }
 
-            if (AreConditionsForEnPassantPresent(square, game))
+            if (AreConditionsForDoublePawnStepPresent(square, game))
+            {
+                var move = new Move(
+                    square,
+                    game.Board[square.BoardIndex + square.Piece!.MovementVectors.Single(x => x.MovementCaptureOption == MovementCaptureOption.MoveOnly).Vector * 2]);
+
+                if (!IsKingInCheckAfterMove(move, game))
+                {
+                    possibleMoves.Add(move);
+                }
+            }
+            else if (AreConditionsForEnPassantPresent(square, game))
             {
                 var move = new Move(
                     square,
@@ -189,12 +202,20 @@ namespace Chess.Engine.Handlers
                 {
                     possibleMoves.Add(new Move(
                         square,
-                        game.Board[square.BoardIndex - 3],
-                        new OtherMoveSideEffect(game.Board[square.BoardIndex - 4], game.Board[square.BoardIndex - 2])));
+                        game.Board[square.BoardIndex - 2],
+                        new OtherMoveSideEffect(game.Board[square.BoardIndex - 4], game.Board[square.BoardIndex - 1])));
                 }
             }
 
             return possibleMoves;
+        }
+
+        private static bool AreConditionsForDoublePawnStepPresent(Square square, Game game)
+        {
+            return square.Piece is Pawn &&
+                   !square.Piece.HasPieceMoved &&
+                   game.Board[square.BoardIndex + square.Piece.MovementVectors.Single(x => x.MovementCaptureOption == MovementCaptureOption.MoveOnly).Vector].Piece == null &&
+                   CanPieceMoveAwayToSquare(square, game.Board, square.BoardIndex + (square.Piece.MovementVectors.Single(x => x.MovementCaptureOption == MovementCaptureOption.MoveOnly).Vector * 2), MovementCaptureOption.MoveOnly);
         }
 
         private static bool AreConditionsForEnPassantPresent(Square square, Game game)
@@ -259,9 +280,9 @@ namespace Chess.Engine.Handlers
 
             var copiedMove = move.DeepCopy(copiedGame.Board);
 
-            ExecuteMove(copiedMove, game);
+            ExecuteMove(copiedMove, copiedGame);
 
-            return IsKingInCheck(side, game.Board);
+            return IsKingInCheck(side, copiedGame.Board);
         }
 
         public static bool IsKingInCheck(Side sideOfKing, List<Square> board)
@@ -275,7 +296,7 @@ namespace Chess.Engine.Handlers
         {
             var attackPieceType = new T();
 
-            foreach (var pieceMovementVector in attackPieceType.MovementVectors.Where(x => x.CanMovementCapture))
+            foreach (var pieceMovementVector in attackPieceType.MovementVectors.Where(x => x.MovementCaptureOption is MovementCaptureOption.Both or MovementCaptureOption.CaptureOnly))
             {
                 var iteration = 1;
 
@@ -290,7 +311,7 @@ namespace Chess.Engine.Handlers
 
                     var piece = board[newIndex]?.Piece;
 
-                    if (piece is T && piece.Side != side && pieceMovementVector.CanMovementCapture)
+                    if (piece is T && piece.Side != side)
                     {
                         return true;
                     }
@@ -334,15 +355,17 @@ namespace Chess.Engine.Handlers
             return horizontalSquareDifferenceOfMovementVector * horizontalSquareDifferenceOfNewIndex >= 0;
         }
 
-        public static bool CanPieceMoveAwayToSquare(Square squareWithPiece, IReadOnlyList<Square> board, int destinationIndex, bool isCaptureAllowed)
+        public static bool CanPieceMoveAwayToSquare(Square squareWithPiece, IReadOnlyList<Square> board, int destinationIndex, MovementCaptureOption movementCaptureOption)
         {
             var destinationSquare = board[destinationIndex];
             var sideOfPieceToMove = squareWithPiece.Piece!.Side;
 
-            return destinationSquare.Piece == null ||
-                   isCaptureAllowed &&
-                   destinationSquare.Piece.Side != sideOfPieceToMove &&
-                   destinationSquare.Piece is not King;
+            return (destinationSquare.Piece == null &&
+                    movementCaptureOption is MovementCaptureOption.MoveOnly or MovementCaptureOption.Both) ||
+                   (destinationSquare.Piece != null &&
+                    movementCaptureOption is MovementCaptureOption.CaptureOnly or MovementCaptureOption.Both &&
+                    destinationSquare.Piece.Side != sideOfPieceToMove &&
+                    destinationSquare.Piece is not King);
         }
 
         public static bool IsCastleOptionAvailable(Side side, BoardSide boardSide, List<Square> board)
@@ -364,7 +387,18 @@ namespace Chess.Engine.Handlers
 
             var move = new Move(originSquare, destinationSquare);
 
-            MoveHandler.ValidateAndExecuteMove(move, game);
+            ValidateAndExecuteMove(move, game);
+
+            game.LastPlayedMove = move;
+
+            game.Turn = game.Turn == Side.White ? Side.Black : Side.White;
+        }
+
+        public static void MovePiece(Game game, int originSquareIndex, int destinationSquareIndex)
+        {
+            var move = new Move(game.Board[originSquareIndex], game.Board[destinationSquareIndex]);
+
+            ValidateAndExecuteMove(move, game);
 
             game.LastPlayedMove = move;
 

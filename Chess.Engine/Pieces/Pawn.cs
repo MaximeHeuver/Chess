@@ -8,29 +8,16 @@ namespace Chess.Engine.Pieces
         public override char NotationCharacter => 'P';
 
         public override List<MovementVector> MovementVectors => this.Side == Side.White
-            ? this.HasPieceMoved
-                ? [
-                    new MovementVector(8, false),
-                    new MovementVector(7, true),
-                    new MovementVector(9, true)
-                ]
-                : [
-                    new MovementVector(8, false),
-                    new MovementVector(7, true),
-                    new MovementVector(9, true),
-                    new MovementVector(16, false)]
-            : this.HasPieceMoved
-                ? [
-                    new MovementVector(8, false),
-                    new MovementVector(7, true),
-                    new MovementVector(9, true)
-                ]
-                : [
-                    new MovementVector(-8, false),
-                    new MovementVector(-7, true),
-                    new MovementVector(-9, true),
-                    new MovementVector(-16, false)
-                ];
+            ? [
+                new MovementVector(8, MovementCaptureOption.MoveOnly),
+                new MovementVector(7, MovementCaptureOption.CaptureOnly),
+                new MovementVector(9, MovementCaptureOption.CaptureOnly)
+            ]
+            : [
+                new MovementVector(-8, MovementCaptureOption.MoveOnly),
+                new MovementVector(-7, MovementCaptureOption.CaptureOnly),
+                new MovementVector(-9, MovementCaptureOption.CaptureOnly)
+            ];
 
         public override bool CanPieceSlide => false;
 

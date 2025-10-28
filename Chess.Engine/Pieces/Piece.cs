@@ -10,7 +10,7 @@ namespace Chess.Engine.Pieces
         public abstract List<MovementVector> MovementVectors { get; }
         public abstract bool CanPieceSlide { get; }
 
-        public bool HasPieceMoved { get; } = false;
+        public bool HasPieceMoved { get; set; } = false;
 
         protected Piece(Side side)
         {
