@@ -15,12 +15,27 @@
         }
         private Pawn(Side side, bool hasPieceMoved) : base(side, hasPieceMoved)
         {
-            MovementVectors = PieceMovementVectors.GetPawnMovementVectors(side);
+            MovementVectors = DetermineMovementVectors(side);
         }
 
         public Pawn(Side side) : base(side)
         {
-            MovementVectors = PieceMovementVectors.GetPawnMovementVectors(side);
+            MovementVectors = DetermineMovementVectors(side);
+        }
+
+        private static List<MovementVector> DetermineMovementVectors(Side side)
+        {
+            return side == Side.White
+                ? [
+                    new MovementVector(8, MovementCaptureOption.MoveOnly),
+                    new MovementVector(7, MovementCaptureOption.CaptureOnly),
+                    new MovementVector(9, MovementCaptureOption.CaptureOnly)
+                ]
+                : [
+                    new MovementVector(-8, MovementCaptureOption.MoveOnly),
+                    new MovementVector(-7, MovementCaptureOption.CaptureOnly),
+                    new MovementVector(-9, MovementCaptureOption.CaptureOnly)
+                ];
         }
     }
 }

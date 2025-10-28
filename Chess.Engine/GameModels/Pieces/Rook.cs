@@ -5,7 +5,13 @@
         public override int Value => 5;
         public override char NotationCharacter => 'R';
 
-        public override List<MovementVector> MovementVectors { get; } = PieceMovementVectors.RookMovementVectors;
+        public override List<MovementVector> MovementVectors { get; } =
+        [
+            new MovementVector(-8, MovementCaptureOption.Both),
+            new MovementVector(-1, MovementCaptureOption.Both),
+            new MovementVector(8, MovementCaptureOption.Both),
+            new MovementVector(1, MovementCaptureOption.Both)
+        ];
         public override bool CanPieceSlide => true;
 
         public override Piece DeepCopy()

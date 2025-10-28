@@ -4,7 +4,17 @@
     {
         public override int Value => 999;
         public override char NotationCharacter => 'K';
-        public override List<MovementVector> MovementVectors { get; } = PieceMovementVectors.KingMovementVectors;
+        public override List<MovementVector> MovementVectors { get; } =
+        [
+            new MovementVector(-9, MovementCaptureOption.Both),
+            new MovementVector(-8, MovementCaptureOption.Both),
+            new MovementVector(-7, MovementCaptureOption.Both),
+            new MovementVector(-1, MovementCaptureOption.Both),
+            new MovementVector(1, MovementCaptureOption.Both),
+            new MovementVector(7, MovementCaptureOption.Both),
+            new MovementVector(8, MovementCaptureOption.Both),
+            new MovementVector(9, MovementCaptureOption.Both)
+        ];
         public override bool CanPieceSlide => false;
 
         public override Piece DeepCopy()

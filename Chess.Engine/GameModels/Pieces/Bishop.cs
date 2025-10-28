@@ -5,7 +5,13 @@
         public override int Value => 3;
         public override char NotationCharacter => 'B';
 
-        public override List<MovementVector> MovementVectors { get; } = PieceMovementVectors.BishopMovementVectors;
+        public override List<MovementVector> MovementVectors { get; } =
+        [
+            new MovementVector(-9, MovementCaptureOption.Both),
+            new MovementVector(-7, MovementCaptureOption.Both),
+            new MovementVector(7, MovementCaptureOption.Both),
+            new MovementVector(9, MovementCaptureOption.Both)
+        ];
 
         public override bool CanPieceSlide => true;
         public override Piece DeepCopy()

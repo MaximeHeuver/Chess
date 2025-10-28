@@ -5,7 +5,17 @@
         public override int Value => 3;
         public override char NotationCharacter => 'N';
 
-        public override List<MovementVector> MovementVectors { get; } = PieceMovementVectors.KnightMovementVectors;
+        public override List<MovementVector> MovementVectors { get; } =
+        [
+            new MovementVector(-17, MovementCaptureOption.Both),
+            new MovementVector(-15, MovementCaptureOption.Both),
+            new MovementVector(-10, MovementCaptureOption.Both),
+            new MovementVector(-6, MovementCaptureOption.Both),
+            new MovementVector(6, MovementCaptureOption.Both),
+            new MovementVector(10, MovementCaptureOption.Both),
+            new MovementVector(15, MovementCaptureOption.Both),
+            new MovementVector(17, MovementCaptureOption.Both)
+        ];
 
         public override bool CanPieceSlide => false;
 
