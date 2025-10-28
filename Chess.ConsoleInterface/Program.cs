@@ -21,7 +21,7 @@ class Program
                 break;
             }
 
-            if (MoveHandler.IsKingCheckMate(game))
+            if (MoveHandler.IsKingCheckmate(game))
             {
                 Console.WriteLine($"Checkmate! {(game.Turn == Side.White ? "black" : "white")} wins!");
                 break;
@@ -52,7 +52,7 @@ class Program
                 Console.WriteLine();
             }
 
-            Console.WriteLine($"King in check? {MoveHandler.IsKingInCheck(game.Turn, game.Board)}");
+            Console.WriteLine($"King in check? {MoveHandler.IsKingInCheck(game)}");
 
             Console.WriteLine("-----------------------");
 

@@ -39,18 +39,17 @@ namespace Chess.Engine.Handlers
             return board.Where(x => x.Piece != null && x.Piece.Side == side).ToList();
         }
 
-        public static bool IsKingCheckMate(Game game)
+        public static bool IsKingCheckmate(Game game)
         {
-            if (!IsKingInCheck(game.Turn, game.Board))
+            if (!IsKingInCheck(game))
             {
                 return false;
             }
 
             var allPiecesFromSide = GetAllSquaresWithPiecesFromSide(game.Turn, game.Board);
 
-            var allPossibleMoves = allPiecesFromSide.SelectMany(x => GetPossibleMovesForPieceOnSquare(x, game)).ToList();
-
-            return allPossibleMoves.Count == 0;
+            var aaa = allPiecesFromSide.All(x => GetPossibleMovesForPieceOnSquare(x, game).Count == 0);
+            return aaa;
         }
 
         public static bool IsStaleMate(Game game)
@@ -78,11 +77,11 @@ namespace Chess.Engine.Handlers
                 return true;
             }
 
-            var allSquaresWithPiecesFromSideAtPlay = game.Board.Where(x => x.Piece!.Side == game.Turn).ToList();
+            var allSquaresWithPiecesFromSideAtPlay = game.Board.Where(x => x.Piece != null && x.Piece.Side == game.Turn).ToList();
 
             var allPossibleMoves = allSquaresWithPiecesFromSideAtPlay.SelectMany(x => GetPossibleMovesForPieceOnSquare(x, game)).ToList();
 
-            return allPossibleMoves.Count == 0;
+            return allPossibleMoves.Count == 0 && !IsKingInCheck(game);
         }
 
         private static void ExecuteMove(Move move, Game game)
@@ -281,14 +280,14 @@ namespace Chess.Engine.Handlers
 
             ExecuteMove(copiedMove, copiedGame);
 
-            return IsKingInCheck(side, copiedGame.Board);
+            return IsKingInCheck(copiedGame);
         }
 
-        public static bool IsKingInCheck(Side sideOfKing, List<Square> board)
+        public static bool IsKingInCheck(Game game)
         {
-            var square = GetKingSquareFromSide(sideOfKing, board);
+            var square = GetKingSquareFromSide(game.Turn, game.Board);
 
-            return IsSquareUnderAttackFromAnyPiece(square, board, sideOfKing);
+            return IsSquareUnderAttackFromAnyPiece(square, game.Board, game.Turn);
         }
 
         private static bool IsSquareUnderAttackFromPiece<T>(Square square, IReadOnlyList<Square> board, Side side) where T : Piece

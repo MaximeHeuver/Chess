@@ -23,33 +23,33 @@ namespace Chess.Engine.GameModels
 
         public void InitializeStandardGame()
         {
-            foreach (var i in Enumerable.Range(8, 8))
-            {
-                Board[i].Piece = new Pawn(Side.White);
-            }
+            // foreach (var i in Enumerable.Range(8, 8))
+            // {
+            //     Board[i].Piece = new Pawn(Side.White);
+            // }
+            //
+            // foreach (var i in Enumerable.Range(48, 8))
+            // {
+            //     Board[i].Piece = new Pawn(Side.Black);
+            // }
 
-            foreach (var i in Enumerable.Range(48, 8))
-            {
-                Board[i].Piece = new Pawn(Side.Black);
-            }
-
-            Board[0].Piece = new Rook(Side.White);
-            Board[1].Piece = new Knight(Side.White);
+            // Board[0].Piece = new Rook(Side.White);
+            // Board[1].Piece = new Knight(Side.White);
             Board[2].Piece = new Bishop(Side.White);
             Board[3].Piece = new Queen(Side.White);
             Board[4].Piece = new King(Side.White);
-            Board[5].Piece = new Bishop(Side.White);
-            Board[6].Piece = new Knight(Side.White);
-            Board[7].Piece = new Rook(Side.White);
+            // Board[5].Piece = new Bishop(Side.White);
+            // Board[6].Piece = new Knight(Side.White);
+            // Board[7].Piece = new Rook(Side.White);
 
-            Board[56].Piece = new Rook(Side.Black);
-            Board[57].Piece = new Knight(Side.Black);
-            Board[58].Piece = new Bishop(Side.Black);
+            // Board[56].Piece = new Rook(Side.Black);
+            // Board[57].Piece = new Knight(Side.Black);
+            // Board[58].Piece = new Bishop(Side.Black);
             Board[59].Piece = new Queen(Side.Black);
             Board[60].Piece = new King(Side.Black);
-            Board[61].Piece = new Bishop(Side.Black);
-            Board[62].Piece = new Knight(Side.Black);
-            Board[63].Piece = new Rook(Side.Black);
+            // Board[61].Piece = new Bishop(Side.Black);
+            // Board[62].Piece = new Knight(Side.Black);
+            // Board[63].Piece = new Rook(Side.Black);
         }
 
         public Game DeepCopy()

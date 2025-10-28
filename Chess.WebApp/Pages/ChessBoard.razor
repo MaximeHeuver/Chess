@@ -1,26 +1,32 @@
 ﻿@page "/"
+@using Chess.Engine.Handlers
 
-<div>
+@if(Game != null)
+{
     <div class="board">
-        @if(Game != null)
+        @foreach(var row in Enumerable.Range(0, 8))
         {
-            foreach(var row in Enumerable.Range(0, 8))
-            {
-                <div class="row">
-                    @foreach (var squareInRow in Enumerable.Range(0, 8))
-                    {
-                        <div @onclick="() => OnSquareClick((56 - (row * 8)) + squareInRow)" class="square">
-                            @if (Game.Board[(56 - (row * 8)) + squareInRow].Piece != null)
-                            {
-                                <img class="piece-image" src="chess-piece-assets/@(Game.Board[(56 - (row * 8)) + squareInRow].Piece?.Side.ToString()[0] + "-" + Game.Board[(56 - (row * 8)) + squareInRow].Piece?.NotationCharacter).svg"/>
-                            }
-                        </div>
-                    }
-                </div>
-            }
+            <div class="row">
+                @foreach (var squareInRow in Enumerable.Range(0, 8))
+                {
+                    <div @onclick="() => OnSquareClick((56 - (row * 8)) + squareInRow)" class="square">
+                        @if (Game.Board[(56 - (row * 8)) + squareInRow].Piece != null)
+                        {
+                            <img class="piece-image" src="chess-piece-assets/@(Game.Board[(56 - (row * 8)) + squareInRow].Piece?.Side.ToString()[0] + "-" + Game.Board[(56 - (row * 8)) + squareInRow].Piece?.NotationCharacter).svg"/>
+                        }
+                    </div>
+                }
+            </div>
         }
     </div>
     
     <p>Last error message: @LastErrorMessage</p>
+
     <p>Last clicked piece square: @(LastSelectedPieceIndex == -1 ? "" : Game!.Board[LastSelectedPieceIndex].SquareNotation)</p>
-</div>
+
+    <p>Check? @MoveHandler.IsKingInCheck(Game)</p>
+
+    <p>Checkmate? @MoveHandler.IsKingCheckmate(Game)</p>
+
+    <p>Stalemate? @MoveHandler.IsStaleMate(Game)</p>
+}
