@@ -1,19 +1,11 @@
-﻿using Chess.Engine.GameModels;
-
-namespace Chess.Engine.Pieces
+﻿namespace Chess.Engine.GameModels.Pieces
 {
     public class Bishop : Piece
     {
         public override int Value => 3;
         public override char NotationCharacter => 'B';
 
-        public override List<MovementVector> MovementVectors { get; } =
-        [
-            new MovementVector(-9, MovementCaptureOption.Both),
-            new MovementVector(-7, MovementCaptureOption.Both),
-            new MovementVector(7, MovementCaptureOption.Both),
-            new MovementVector(9, MovementCaptureOption.Both)
-        ];
+        public override List<MovementVector> MovementVectors { get; } = PieceMovementVectors.BishopMovementVectors;
 
         public override bool CanPieceSlide => true;
         public override Piece DeepCopy()
@@ -26,10 +18,6 @@ namespace Chess.Engine.Pieces
         }
 
         public Bishop(Side side) : base(side)
-        {
-        }
-
-        public Bishop() : base(Side.White)
         {
         }
     }

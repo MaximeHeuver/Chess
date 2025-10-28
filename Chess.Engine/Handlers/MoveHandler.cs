@@ -1,7 +1,6 @@
 ﻿using Chess.Engine.GameModels;
-using Chess.Engine.Moves;
-using Chess.Engine.Moves.MoveSideEffects;
-using Chess.Engine.Pieces;
+using Chess.Engine.GameModels.MoveSideEffects;
+using Chess.Engine.GameModels.Pieces;
 using System.Text.RegularExpressions;
 
 namespace Chess.Engine.Handlers
@@ -139,7 +138,7 @@ namespace Chess.Engine.Handlers
 
                     if (IsMovePromotion(piece, game.Board[newIndex]))
                     {
-                        moveSideEffect = new PromotionSideEffect(new Queen(piece.Side));
+                        moveSideEffect = new PromotionSideEffect(game.Board[newIndex]);
                     }
 
                     var move = new Move(square, game.Board[newIndex], moveSideEffect);
@@ -267,9 +266,9 @@ namespace Chess.Engine.Handlers
 
         private static bool IsMovePromotion(Piece piece, Square destination)
         {
-            return piece is Pawn && piece!.Side == Side.White
-                ? Enumerable.Range(0, 8).Contains(destination.BoardIndex)
-                : Enumerable.Range(56, 8).Contains(destination.BoardIndex);
+            return piece is Pawn && (piece!.Side == Side.White
+                ? Enumerable.Range(56, 8).Contains(destination.BoardIndex)
+                : Enumerable.Range(0, 8).Contains(destination.BoardIndex));
         }
 
         private static bool IsKingInCheckAfterMove(Move move, Game game)
@@ -292,9 +291,9 @@ namespace Chess.Engine.Handlers
             return IsSquareUnderAttackFromAnyPiece(square, board, sideOfKing);
         }
 
-        private static bool IsSquareUnderAttackFromPiece<T>(Square square, IReadOnlyList<Square> board, Side side) where T : Piece, new()
+        private static bool IsSquareUnderAttackFromPiece<T>(Square square, IReadOnlyList<Square> board, Side side) where T : Piece
         {
-            var attackPieceType = new T();
+            Piece attackPieceType = (T)Activator.CreateInstance(typeof(T), [side == Side.White ? Side.Black : Side.White])!;
 
             foreach (var pieceMovementVector in attackPieceType.MovementVectors.Where(x => x.MovementCaptureOption is MovementCaptureOption.Both or MovementCaptureOption.CaptureOnly))
             {
@@ -302,9 +301,11 @@ namespace Chess.Engine.Handlers
 
                 while (true)
                 {
-                    var newIndex = square.BoardIndex + pieceMovementVector.Vector * iteration;
+                    var oppositeVector = pieceMovementVector.Vector * -1;
 
-                    if (!IsBoardIndexReachable(square, pieceMovementVector.Vector, newIndex))
+                    var newIndex = square.BoardIndex + oppositeVector * iteration;
+
+                    if (!IsBoardIndexReachable(square, oppositeVector, newIndex))
                     {
                         break;
                     }

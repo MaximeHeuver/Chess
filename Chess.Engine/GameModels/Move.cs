@@ -1,7 +1,6 @@
-﻿using Chess.Engine.GameModels;
-using Chess.Engine.Moves.MoveSideEffects;
+﻿using Chess.Engine.GameModels.MoveSideEffects;
 
-namespace Chess.Engine.Moves
+namespace Chess.Engine.GameModels
 {
     public class Move
     {

@@ -1,4 +1,4 @@
-﻿namespace Chess.Engine.Moves.MoveSideEffects
+﻿namespace Chess.Engine.GameModels.MoveSideEffects
 {
     public abstract class MoveSideEffect
     {

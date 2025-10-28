@@ -1,6 +1,4 @@
-﻿using Chess.Engine.GameModels;
-
-namespace Chess.Engine.Pieces
+﻿namespace Chess.Engine.GameModels.Pieces
 {
     public abstract class Piece
     {
