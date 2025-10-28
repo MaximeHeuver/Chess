@@ -32,7 +32,7 @@ namespace Chess.Engine.Handlers
 
             var moveFromPossibleMoves = possibleMoves.Single(x => x.Destination.Equals(move.Destination));
 
-            ExecuteMove(moveFromPossibleMoves);
+            ExecuteMove(moveFromPossibleMoves, game);
         }
 
         public static List<Square> GetAllSquaresWithPiecesFromSide(Side side, List<Square> board)
@@ -40,21 +40,65 @@ namespace Chess.Engine.Handlers
             return board.Where(x => x.Piece != null && x.Piece.Side == side).ToList();
         }
 
-        public static bool IsKingCheckMate(Side sideToCheck, Game game)
+        public static bool IsKingCheckMate(Game game)
         {
-            var allPiecesFromSide = GetAllSquaresWithPiecesFromSide(sideToCheck, game.Board);
+            if (!IsKingInCheck(game.Turn, game.Board))
+            {
+                return false;
+            }
+
+            var allPiecesFromSide = GetAllSquaresWithPiecesFromSide(game.Turn, game.Board);
 
             var allPossibleMoves = allPiecesFromSide.SelectMany(x => GetPossibleMovesForPieceOnSquare(x, game)).ToList();
 
             return allPossibleMoves.Count == 0;
         }
 
-        private static void ExecuteMove(Move move)
+        public static bool IsStaleMate(Game game)
         {
+            var numberOfOccurrencesOfLatestPosition = game.allPositionsSinceLastCapture.Count(x => x.Split(' ')[0] == game.allPositionsSinceLastCapture.Last().Split()[0]);
+
+            if (numberOfOccurrencesOfLatestPosition == 3)
+            {
+                return true;
+            }
+
+            var allSquaresWithPieces = game.Board.Where(x => x.Piece != null).ToList();
+
+            var areOnlyKingsInPlay = allSquaresWithPieces.Count == 2 &&
+                                     allSquaresWithPieces.Exists(x => x.Piece is King && x.Piece.Side == Side.White) &&
+                                     allSquaresWithPieces.Exists(x => x.Piece is King && x.Piece.Side == Side.Black);
+
+            var areOnlyKingsInPlayWithSingleMinorPiece = allSquaresWithPieces.Count == 3 &&
+                                     allSquaresWithPieces.Exists(x => x.Piece is King && x.Piece.Side == Side.White) &&
+                                     allSquaresWithPieces.Exists(x => x.Piece is King && x.Piece.Side == Side.Black) &&
+                                     allSquaresWithPieces.Exists(x => x.Piece is Bishop or Knight);
+
+            if (areOnlyKingsInPlay || areOnlyKingsInPlayWithSingleMinorPiece)
+            {
+                return true;
+            }
+
+            var allSquaresWithPiecesFromSideAtPlay = game.Board.Where(x => x.Piece!.Side == game.Turn).ToList();
+
+            var allPossibleMoves = allSquaresWithPiecesFromSideAtPlay.SelectMany(x => GetPossibleMovesForPieceOnSquare(x, game)).ToList();
+
+            return allPossibleMoves.Count == 0;
+        }
+
+        private static void ExecuteMove(Move move, Game game)
+        {
+            if (move.Destination.Piece != null || move.SideEffect is CaptureSideEffect)
+            {
+                game.ClearPositionsList();
+            }
+
             move.Destination.Piece = move.Origin.Piece;
             move.Origin.Piece = null;
 
             move.SideEffect?.Execute();
+
+            game.AddPosition(FenConverter.GameToFenNotation(game));
         }
 
         public static List<Move> GetPossibleMovesForPieceOnSquare(Square square, Game game)
@@ -200,7 +244,6 @@ namespace Chess.Engine.Handlers
                    IsSquareUnderAttackFromPiece<Pawn>(square, board, side);
         }
 
-
         private static bool IsMovePromotion(Piece piece, Square destination)
         {
             return piece is Pawn && piece!.Side == Side.White
@@ -216,7 +259,7 @@ namespace Chess.Engine.Handlers
 
             var copiedMove = move.DeepCopy(copiedGame.Board);
 
-            ExecuteMove(copiedMove);
+            ExecuteMove(copiedMove, game);
 
             return IsKingInCheck(side, game.Board);
         }
@@ -278,10 +321,7 @@ namespace Chess.Engine.Handlers
             return kingSquare;
         }
 
-        private static bool IsBoardIndexReachable(
-            Square origin,
-            int pieceMovementVector,
-            int destinationIndex)
+        private static bool IsBoardIndexReachable(Square origin, int pieceMovementVector, int destinationIndex)
         {
             if (destinationIndex is > 63 or < 0)
             {
@@ -294,11 +334,7 @@ namespace Chess.Engine.Handlers
             return horizontalSquareDifferenceOfMovementVector * horizontalSquareDifferenceOfNewIndex >= 0;
         }
 
-        public static bool CanPieceMoveAwayToSquare(
-            Square squareWithPiece,
-            IReadOnlyList<Square> board,
-            int destinationIndex,
-            bool isCaptureAllowed)
+        public static bool CanPieceMoveAwayToSquare(Square squareWithPiece, IReadOnlyList<Square> board, int destinationIndex, bool isCaptureAllowed)
         {
             var destinationSquare = board[destinationIndex];
             var sideOfPieceToMove = squareWithPiece.Piece!.Side;

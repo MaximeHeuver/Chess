@@ -15,7 +15,13 @@ class Program
 
             Console.WriteLine();
 
-            if (MoveHandler.IsKingCheckMate(game.Turn, game))
+            if (MoveHandler.IsStaleMate(game))
+            {
+                Console.WriteLine($"Stalemate! {(game.Turn == Side.White ? "black" : "white")} wins!");
+                break;
+            }
+
+            if (MoveHandler.IsKingCheckMate(game))
             {
                 Console.WriteLine($"Checkmate! {(game.Turn == Side.White ? "black" : "white")} wins!");
                 break;

@@ -8,6 +8,7 @@ namespace Chess.Engine.GameModels
         public Side Turn { get; set; } = Side.White;
         public List<Square> Board { get; } = Enumerable.Range(0, 64).Select(index => new Square(index)).ToList();
         public Move? LastPlayedMove { get; set; } = null;
+        public List<string> allPositionsSinceLastCapture { get; private set; } = [];
 
         public Game()
         {
@@ -57,6 +58,16 @@ namespace Chess.Engine.GameModels
             var copiedBoard = Board.Select(x => x.DeepCopy()).ToList();
 
             return new Game(copiedBoard, Turn == Side.White ? Side.White : Side.Black, LastPlayedMove?.DeepCopy(copiedBoard));
+        }
+
+        public void ClearPositionsList()
+        {
+            allPositionsSinceLastCapture = [];
+        }
+
+        public void AddPosition(string fenPosition)
+        {
+            allPositionsSinceLastCapture.Add(fenPosition);
         }
     }
 }
