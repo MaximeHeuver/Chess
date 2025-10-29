@@ -1,6 +1,4 @@
-﻿using Chess.Engine.GameModels;
-
-namespace Chess.Engine.GameModels.MoveSideEffects
+﻿namespace Chess.Engine.GameModels.MoveSideEffects
 {
     internal class CaptureSideEffect : MoveSideEffect
     {

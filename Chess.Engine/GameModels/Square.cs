@@ -11,7 +11,7 @@ namespace Chess.Engine.GameModels
         {
             BoardIndex = boardIndex;
         }
-        private Square(int boardIndex, Piece? piece)
+        public Square(int boardIndex, Piece? piece)
         {
             BoardIndex = boardIndex;
             Piece = piece;

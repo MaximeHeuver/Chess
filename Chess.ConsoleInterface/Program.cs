@@ -1,5 +1,5 @@
 ﻿using Chess.Engine.GameModels;
-using Chess.Engine.Handlers;
+using Chess.Engine.Logic;
 
 class Program
 {
@@ -15,13 +15,13 @@ class Program
 
             Console.WriteLine();
 
-            if (MoveHandler.IsStaleMate(game))
+            if (GameStateChecker.IsStaleMate(game))
             {
                 Console.WriteLine($"Stalemate! {(game.Turn == Side.White ? "black" : "white")} wins!");
                 break;
             }
 
-            if (MoveHandler.IsKingCheckmate(game))
+            if (GameStateChecker.IsKingCheckmate(game))
             {
                 Console.WriteLine($"Checkmate! {(game.Turn == Side.White ? "black" : "white")} wins!");
                 break;
@@ -43,7 +43,9 @@ class Program
 
             try
             {
-                MoveHandler.MovePiece(game, origin, destination);
+                var move = MoveHandler.GetMoveFromSquareNotation(game, origin, destination);
+
+                MoveHandler.ValidateAndExecuteMove(move, game);
             }
             catch (Exception e)
             {
@@ -52,7 +54,7 @@ class Program
                 Console.WriteLine();
             }
 
-            Console.WriteLine($"King in check? {MoveHandler.IsKingInCheck(game)}");
+            Console.WriteLine($"King in check? {GameStateChecker.IsKingInCheck(game)}");
 
             Console.WriteLine("-----------------------");
 

@@ -1,5 +1,5 @@
 ﻿@page "/"
-@using Chess.Engine.Handlers
+@using Chess.Engine.Logic
 
 @if(Game != null)
 {
@@ -9,10 +9,15 @@
             <div class="row">
                 @foreach (var squareInRow in Enumerable.Range(0, 8))
                 {
-                    <div @onclick="() => OnSquareClick((56 - (row * 8)) + squareInRow)" class="square">
+                    <div @onclick="() => OnSquareClick((56 - (row * 8)) + squareInRow)" class="@((row + squareInRow) % 2 == 0 ? "square even-square" : "square odd-square")">
+                        @if (HighlightIndexes.Contains(Game.Board[(56 - (row * 8)) + squareInRow].BoardIndex))
+                        {
+                            <div class="square-highlight"/>
+                        }
+
                         @if (Game.Board[(56 - (row * 8)) + squareInRow].Piece != null)
                         {
-                            <img class="piece-image" src="chess-piece-assets/@(Game.Board[(56 - (row * 8)) + squareInRow].Piece?.Side.ToString()[0] + "-" + Game.Board[(56 - (row * 8)) + squareInRow].Piece?.NotationCharacter).svg"/>
+                            <img class="piece-image" src="chess-piece-assets/@(Game.Board[(56 - (row * 8)) + squareInRow].Piece?.Side.ToString()[0] + "-" + Game.Board[(56 - (row * 8)) + squareInRow].Piece?.NotationCharacter).svg" />
                         }
                     </div>
                 }
@@ -24,9 +29,11 @@
 
     <p>Last clicked piece square: @(LastSelectedPieceIndex == -1 ? "" : Game!.Board[LastSelectedPieceIndex].SquareNotation)</p>
 
-    <p>Check? @MoveHandler.IsKingInCheck(Game)</p>
+    <p>FEN: @FenConverter.GameToFenNotation(Game)</p>
 
-    <p>Checkmate? @MoveHandler.IsKingCheckmate(Game)</p>
+    <p>Check? @GameStateChecker.IsKingInCheck(Game)</p>
 
-    <p>Stalemate? @MoveHandler.IsStaleMate(Game)</p>
+    <p>Checkmate? @GameStateChecker.IsKingCheckmate(Game)</p>
+
+    <p>Stalemate? @GameStateChecker.IsStaleMate(Game)</p>
 }

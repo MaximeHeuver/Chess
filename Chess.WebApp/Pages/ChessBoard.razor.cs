@@ -1,11 +1,14 @@
-﻿using Chess.Engine.GameModels;
-using Chess.Engine.Handlers;
+﻿
+using Chess.Engine.Bot.Logic;
+using Chess.Engine.GameModels;
+using Chess.Engine.Logic;
 
 namespace Chess.WebApp.Pages
 {
     public partial class ChessBoard
     {
         public Game? Game { get; private set; } = null;
+        public List<int>? HighlightIndexes { get; private set; } = [];
         public string? LastErrorMessage { get; set; }
         public int LastSelectedPieceIndex { get; set; } = -1;
 
@@ -23,6 +26,9 @@ namespace Chess.WebApp.Pages
             if (LastSelectedPieceIndex == -1 && Game?.Board[squareIndex].Piece != null && Game?.Board[squareIndex].Piece!.Side == Game.Turn)
             {
                 LastSelectedPieceIndex = squareIndex;
+
+                SetHighlightSquareIndexes(squareIndex);
+
                 return;
             }
 
@@ -33,17 +39,35 @@ namespace Chess.WebApp.Pages
 
             try
             {
-                MoveHandler.MovePiece(Game, LastSelectedPieceIndex, squareIndex);
+                var move = MoveHandler.GetMoveFromIndexes(Game, LastSelectedPieceIndex, squareIndex);
+
+                MoveHandler.ValidateAndExecuteMove(move, Game);
 
                 LastSelectedPieceIndex = -1;
+
+                HighlightIndexes = [];
+
+                MinMaxTree.AAA(Game);
             }
             catch (Exception ex)
             {
-
                 Console.WriteLine(ex);
+
                 LastErrorMessage = ex.Message;
+
                 LastSelectedPieceIndex = -1;
+
+                HighlightIndexes = [];
             }
+        }
+
+        private void SetHighlightSquareIndexes(int squareIndex)
+        {
+            var square = Game.Board[squareIndex];
+
+            var possibleMoves = GameStateChecker.GetPossibleMovesForPieceOnSquare(square, Game);
+
+            HighlightIndexes = possibleMoves.Select(x => x.Destination.BoardIndex).ToList();
         }
     }
 }
