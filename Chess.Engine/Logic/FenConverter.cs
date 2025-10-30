@@ -114,7 +114,7 @@ namespace Chess.Engine.Logic
             var rows = sections[0].Split('/');
             List<Square> board = [];
 
-            for (int i = 0; i < rows.Length; i++)
+            for (var i = 7; i >= 0; i--)
             {
                 board.AddRange(RowToSquares(rows[i], i));
             }
@@ -137,10 +137,10 @@ namespace Chess.Engine.Logic
                 return;
             }
 
-            if (!castleRegex.IsMatch(section))
-            {
-                throw new ArgumentException($"unable to convert fen position. castle options {section} is not known");
-            }
+            // if (!castleRegex.IsMatch(section))
+            // {
+            //     throw new ArgumentException($"unable to convert fen position. castle options {section} is not known");
+            // }
 
             if (section.Contains("K"))
             {
@@ -189,14 +189,14 @@ namespace Chess.Engine.Logic
                 {
                     for (int i = 0; i < amountOFEmptySquares; i++)
                     {
-                        rowSquares.Add(new Square(rank * 8 + currentIndexInRow));
+                        rowSquares.Add(new Square((7 - rank) * 8 + currentIndexInRow));
                         currentIndexInRow++;
                     }
 
                     continue;
                 }
 
-                rowSquares.Add(new Square(rank * 8 + currentIndexInRow, GetPieceFromLetter(character)));
+                rowSquares.Add(new Square((7 - rank) * 8 + currentIndexInRow, GetPieceFromLetter(character)));
                 currentIndexInRow++;
             }
 

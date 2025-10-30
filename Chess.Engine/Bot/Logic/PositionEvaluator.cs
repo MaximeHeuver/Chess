@@ -6,7 +6,7 @@ namespace Chess.Engine.Bot.Logic
 {
     public class PositionEvaluator
     {
-        private const int PieceValueScoreWeight = 5;
+        private const int PieceValueScoreWeight = 20;
         private const int PieceMovementOptionsScoreWeight = 2;
         private const int PieceCaptureOptionsScoreWeight = 2;
 
@@ -26,8 +26,7 @@ namespace Chess.Engine.Bot.Logic
 
             var allMovementSquares = allSquaresWithPiecesFromSide.Sum(square => GameStateChecker.GetPossibleMovesForPieceOnSquare(square, game).Count);
 
-            return pieceValues * PieceValueScoreWeight +
-                   allMovementSquares * PieceMovementOptionsScoreWeight;
+            return (pieceValues * PieceValueScoreWeight) + allMovementSquares;
         }
     }
 }

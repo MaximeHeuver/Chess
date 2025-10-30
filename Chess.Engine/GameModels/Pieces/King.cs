@@ -2,7 +2,7 @@
 {
     public class King : Piece
     {
-        public override int Value => 999;
+        public override int Value => 20;
         public override char NotationCharacter => 'K';
         public override List<MovementVector> MovementVectors { get; } =
         [

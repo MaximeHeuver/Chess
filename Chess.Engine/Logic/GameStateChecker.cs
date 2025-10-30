@@ -18,6 +18,12 @@ namespace Chess.Engine.Logic
                    rookSquareToCheck.Piece is Rook &&
                    !rookSquareToCheck.Piece.HasPieceMoved;
         }
+        public static bool IsKingInCheck(Game game, Side side)
+        {
+            var square = SquareFinder.GetKingSquareFromSide(side, game.Board);
+
+            return IsSquareUnderAttackFromAnyPiece(square, game.Board, side);
+        }
 
         public static bool IsKingInCheck(Game game)
         {
@@ -243,13 +249,17 @@ namespace Chess.Engine.Logic
 
             MoveHandler.ExecuteMove(copiedMove, copiedGame);
 
-            return GameStateChecker.IsKingInCheck(copiedGame);
+            return IsKingInCheck(copiedGame, side);
         }
 
         private static bool AreConditionsForDoublePawnStepPresent(Square square, Game game)
         {
-            return square.Piece is Pawn &&
-                   square.Piece.Side == Side.White ? square.BoardIndex / 8 == 1 : square.BoardIndex / 8 == 6 &&
+            if (square.Piece is not Pawn)
+            {
+                return false;
+            }
+
+            return square.Piece.Side == Side.White ? square.BoardIndex / 8 == 1 : square.BoardIndex / 8 == 6 &&
                    game.Board[square.BoardIndex + square.Piece.MovementVectors.Single(x => x.MovementCaptureOption == MovementCaptureOption.MoveOnly).Vector].Piece == null &&
                    CanPieceMoveAwayToSquare(square, game.Board, square.BoardIndex + (square.Piece.MovementVectors.Single(x => x.MovementCaptureOption == MovementCaptureOption.MoveOnly).Vector * 2), MovementCaptureOption.MoveOnly);
         }

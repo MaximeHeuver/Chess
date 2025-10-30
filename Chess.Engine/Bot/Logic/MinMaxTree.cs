@@ -8,11 +8,13 @@ namespace Chess.Engine.Bot.Logic
     {
         private const int MaxDepth = 2;
 
-        public static void AAA(Game game)
+        public static Move GetBestMoveForBlack(Game game)
         {
-            var root = new PositionNode(FenConverter.GameToFenNotation(game), PositionEvaluator.GetPositionEvaluation(game));
+            var root = new PositionNode(FenConverter.GameToFenNotation(game), PositionEvaluator.GetPositionEvaluation(game).BlackRating, true, null);
 
             Recurse(root, 1);
+
+            return root.ChildPositions.First(x => x.Evaluation == root.MinMaxedEvaluation).Move!;
         }
 
         private static void Recurse(PositionNode node, int iteration)
@@ -25,7 +27,7 @@ namespace Chess.Engine.Bot.Logic
             var game = FenConverter.FenNotationToGame(node.FenPosition);
 
             var allPossibleMovesForAllPieceFromSide = SquareFinder.GetAllSquaresWithPiecesFromSide(game.Turn, game.Board)
-                .SelectMany(square => GameStateChecker.GetPossibleMovesForPieceOnSquare(square, game));
+                .SelectMany(square => GameStateChecker.GetPossibleMovesForPieceOnSquare(square, game)).ToList();
 
             foreach (var move in allPossibleMovesForAllPieceFromSide)
             {
@@ -34,11 +36,15 @@ namespace Chess.Engine.Bot.Logic
 
                 MoveHandler.ExecuteMove(copiedMove, copiedGame);
 
-                var positionNode = new PositionNode(
+                var childNode = new PositionNode(
                     FenConverter.GameToFenNotation(copiedGame),
-                    PositionEvaluator.GetPositionEvaluation(copiedGame));
+                    PositionEvaluator.GetPositionEvaluation(copiedGame).WhiteToBlackRatio.blackFraction,
+                    iteration % 2 == 0,
+                    iteration == 1 ? copiedMove : null); //todo convert move to string for efficient storage
 
-                Recurse(positionNode, iteration + 1);
+                node.ChildPositions.Add(childNode);
+
+                Recurse(childNode, iteration + 1);
             }
         }
     }

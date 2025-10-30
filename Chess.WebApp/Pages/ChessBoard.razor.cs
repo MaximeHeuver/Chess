@@ -1,5 +1,4 @@
-﻿
-using Chess.Engine.Bot.Logic;
+﻿using Chess.Engine.Bot.Logic;
 using Chess.Engine.GameModels;
 using Chess.Engine.Logic;
 
@@ -47,11 +46,15 @@ namespace Chess.WebApp.Pages
 
                 HighlightIndexes = [];
 
-                MinMaxTree.AAA(Game);
+                var botMove = MinMaxTree.GetBestMoveForBlack(Game);
+
+                var botMoveInThisGame = botMove.DeepCopy(Game.Board);
+
+                MoveHandler.ValidateAndExecuteMove(botMoveInThisGame, Game);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine(ex.StackTrace);
 
                 LastErrorMessage = ex.Message;
 
