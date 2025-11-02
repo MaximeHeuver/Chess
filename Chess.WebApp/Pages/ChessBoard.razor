@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Chess.Engine.Logic
+@using Chess.Engine.Bot.Logic
 
 @if(Game != null)
 {
@@ -24,7 +25,11 @@
             </div>
         }
     </div>
-    
+
+    <p>Node count: @MinMaxTree.NumberOfNodes</p>
+
+    <p>elapsed milliseconds: @MinMaxTree.ElapsedMilliseconds</p>
+
     <p>Last error message: @LastErrorMessage</p>
 
     <p>Last clicked piece square: @(LastSelectedPieceIndex == -1 ? "" : Game!.Board[LastSelectedPieceIndex].SquareNotation)</p>

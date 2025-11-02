@@ -18,6 +18,7 @@ namespace Chess.Engine.Logic
                    rookSquareToCheck.Piece is Rook &&
                    !rookSquareToCheck.Piece.HasPieceMoved;
         }
+
         public static bool IsKingInCheck(Game game, Side side)
         {
             var square = SquareFinder.GetKingSquareFromSide(side, game.Board);
@@ -77,7 +78,7 @@ namespace Chess.Engine.Logic
                         break;
                     }
 
-                    var piece = board[newIndex]?.Piece;
+                    var piece = board[newIndex].Piece;
 
                     if (piece is T && piece.Side != side)
                     {
@@ -259,9 +260,18 @@ namespace Chess.Engine.Logic
                 return false;
             }
 
-            return square.Piece.Side == Side.White ? square.BoardIndex / 8 == 1 : square.BoardIndex / 8 == 6 &&
-                   game.Board[square.BoardIndex + square.Piece.MovementVectors.Single(x => x.MovementCaptureOption == MovementCaptureOption.MoveOnly).Vector].Piece == null &&
-                   CanPieceMoveAwayToSquare(square, game.Board, square.BoardIndex + (square.Piece.MovementVectors.Single(x => x.MovementCaptureOption == MovementCaptureOption.MoveOnly).Vector * 2), MovementCaptureOption.MoveOnly);
+            var movementVector = square.Piece.MovementVectors
+                .Single(x => x.MovementCaptureOption == MovementCaptureOption.MoveOnly).Vector;
+
+            if (!(square.Piece.Side == Side.White
+                    ? square.BoardIndex / 8 == 1
+                    : square.BoardIndex / 8 == 6))
+            {
+                return false;
+            }
+
+            return game.Board[square.BoardIndex + movementVector].Piece == null &&
+                   CanPieceMoveAwayToSquare(square, game.Board, square.BoardIndex + (movementVector * 2), MovementCaptureOption.MoveOnly);
         }
 
         private static bool AreConditionsForEnPassantPresent(Square square, Game game)
@@ -310,7 +320,7 @@ namespace Chess.Engine.Logic
 
         private static bool CanKingCastle(Side side, BoardSide boardSide, List<Square> board)
         {
-            if (!GameStateChecker.IsCastleOptionAvailable(side, boardSide, board))
+            if (!IsCastleOptionAvailable(side, boardSide, board))
             {
                 return false;
             }
@@ -323,7 +333,7 @@ namespace Chess.Engine.Logic
 
             return indexesToCheckForAttacks.All(indexToCheck =>
                 (indexToCheck == 0 || board[kingSquare.BoardIndex + indexToCheck].Piece == null) &&
-                !GameStateChecker.IsSquareUnderAttackFromAnyPiece(board[kingSquare.BoardIndex + indexToCheck], board, kingSquare.Piece!.Side));
+                !IsSquareUnderAttackFromAnyPiece(board[kingSquare.BoardIndex + indexToCheck], board, kingSquare.Piece!.Side));
         }
 
     }

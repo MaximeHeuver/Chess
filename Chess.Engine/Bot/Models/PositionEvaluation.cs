@@ -2,15 +2,11 @@
 {
     public class PositionEvaluation
     {
-        public decimal WhiteRating { get; set; }
-        public decimal BlackRating { get; set; }
+        public int WhiteRating { get; set; }
+        public int BlackRating { get; set; }
+        public int SummedRatings => WhiteRating - BlackRating;
 
-        public (decimal whiteFraction, decimal blackFraction) WhiteToBlackRatio => (
-            WhiteRating / WhiteRating + BlackRating,
-            BlackRating / WhiteRating + BlackRating
-        );
-
-        public PositionEvaluation(decimal whiteRating, decimal blackRating)
+        public PositionEvaluation(int whiteRating, int blackRating)
         {
             WhiteRating = whiteRating;
             BlackRating = blackRating;

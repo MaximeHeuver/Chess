@@ -1,51 +1,173 @@
 ﻿using Chess.Engine.Bot.Models;
 using Chess.Engine.GameModels;
 using Chess.Engine.Logic;
+using System.Diagnostics;
 
 namespace Chess.Engine.Bot.Logic
 {
     public class MinMaxTree
     {
-        private const int MaxDepth = 2;
+        public static int ElapsedMilliseconds = 0;
+        public static int NumberOfNodes = 0;
+        public static int NumberOfCancelledLoops = 0;
+        public static int LatestMinMaxEvaluation = 0;
+        public static int MaxDepth { get; set; } = 2;
+        public static PositionNode? LatestNode { get; set; }
 
         public static Move GetBestMoveForBlack(Game game)
         {
-            var root = new PositionNode(FenConverter.GameToFenNotation(game), PositionEvaluator.GetPositionEvaluation(game).BlackRating, true, null);
+            var stopwatch = new Stopwatch();
 
-            Recurse(root, 1);
+            stopwatch.Start();
 
-            return root.ChildPositions.First(x => x.Evaluation == root.MinMaxedEvaluation).Move!;
+            NumberOfCancelledLoops = 0;
+            NumberOfNodes = 0;
+
+            var root = new PositionNode(FenConverter.GameToFenNotation(game), null);
+
+            var bestEvaluation = AlphaBeta(root, 0, -99999, 99999, false);
+
+            var move = root.ChildPositions.First(x => x.Evaluation == bestEvaluation).Move!;
+
+            LatestMinMaxEvaluation = bestEvaluation;
+
+            LatestNode = root;
+
+            stopwatch.Stop();
+
+            ElapsedMilliseconds = stopwatch.Elapsed.Milliseconds;
+
+            return move;
         }
 
-        private static void Recurse(PositionNode node, int iteration)
+        public static object lockObj = new object();
+
+        private static int AlphaBeta(PositionNode node, int depth, decimal alpha, decimal beta, bool isMaximizingPlayer)
         {
-            if (iteration == MaxDepth)
+            CancellationTokenSource cts = new();
+
+            ParallelOptions options = new()
             {
-                return;
-            }
+                CancellationToken = cts.Token
+            };
 
             var game = FenConverter.FenNotationToGame(node.FenPosition);
+
+            if (depth == MaxDepth || IsNodeTerminal(game))
+            {
+                node.Evaluation = PositionEvaluator.GetPositionEvaluation(game).SummedRatings;
+
+                return node.Evaluation;
+            }
 
             var allPossibleMovesForAllPieceFromSide = SquareFinder.GetAllSquaresWithPiecesFromSide(game.Turn, game.Board)
                 .SelectMany(square => GameStateChecker.GetPossibleMovesForPieceOnSquare(square, game)).ToList();
 
-            foreach (var move in allPossibleMovesForAllPieceFromSide)
+            node.Evaluation = isMaximizingPlayer ? -99999 : 99999;
+
+            try
             {
-                var copiedGame = game.DeepCopy();
-                var copiedMove = move.DeepCopy(copiedGame.Board);
+                Parallel.ForEach(allPossibleMovesForAllPieceFromSide, options, move =>
+                {
+                    var copiedGame = game.DeepCopy();
+                    var copiedMove = move.DeepCopy(copiedGame.Board);
 
-                MoveHandler.ExecuteMove(copiedMove, copiedGame);
+                    MoveHandler.ExecuteMove(copiedMove, copiedGame);
 
-                var childNode = new PositionNode(
-                    FenConverter.GameToFenNotation(copiedGame),
-                    PositionEvaluator.GetPositionEvaluation(copiedGame).WhiteToBlackRatio.blackFraction,
-                    iteration % 2 == 0,
-                    iteration == 1 ? copiedMove : null); //todo convert move to string for efficient storage
+                    var childNode = new PositionNode(FenConverter.GameToFenNotation(copiedGame), copiedMove);
 
-                node.ChildPositions.Add(childNode);
+                    var evaluation = AlphaBeta(childNode, depth + 1, alpha, beta, !isMaximizingPlayer);
 
-                Recurse(childNode, iteration + 1);
+                    Interlocked.Increment(ref NumberOfNodes);
+
+                    node.Evaluation = isMaximizingPlayer
+                        ? Math.Max(node.Evaluation, evaluation)
+                        : Math.Min(node.Evaluation, evaluation);
+
+                    node.ChildPositions.Add(childNode);
+
+                    lock (lockObj)
+                    {
+                        if (isMaximizingPlayer ? alpha >= beta : beta <= alpha)
+                        {
+                            node.IsStoppedDueToPruning = true;
+                            cts.Cancel();
+                        }
+
+                        if (isMaximizingPlayer)
+                        {
+                            alpha = Math.Max(alpha, node.Evaluation);
+                        }
+                        else
+                        {
+                            beta = Math.Min(beta, node.Evaluation);
+                        }
+                    }
+                });
             }
+            catch (OperationCanceledException ex)
+            {
+
+            }
+
+            return node.Evaluation;
         }
+
+        private static bool IsNodeTerminal(Game game)
+        {
+            return GameStateChecker.IsStaleMate(game) || GameStateChecker.IsKingCheckmate(game);
+        }
+
+
+        // private static PositionNode Recurse(PositionNode node, int iteration)
+        // {
+        //     if (iteration == MaxDepth)
+        //     {
+        //         return node;
+        //     }
+        //
+        //     var isMax = iteration % 2 == 0;
+        //
+        //     var game = FenConverter.FenNotationToGame(node.FenPosition);
+        //
+        //     var allPossibleMovesForAllPieceFromSide = SquareFinder.GetAllSquaresWithPiecesFromSide(game.Turn, game.Board)
+        //         .SelectMany(square => GameStateChecker.GetPossibleMovesForPieceOnSquare(square, game)).ToList();
+        //
+        //
+        //     if (IsNodeTerminal())
+        //     {
+        //         return node;
+        //     }
+        //     Console.WriteLine(allPossibleMovesForAllPieceFromSide.Count);
+        //
+        //     Parallel.ForEach(allPossibleMovesForAllPieceFromSide, move =>
+        //     {
+        //         var copiedGame = game.DeepCopy();
+        //         var copiedMove = move.DeepCopy(copiedGame.Board);
+        //
+        //         MoveHandler.ExecuteMove(copiedMove, copiedGame);
+        //
+        //         var childNode = new PositionNode(
+        //             FenConverter.GameToFenNotation(copiedGame),
+        //             PositionEvaluator.GetPositionEvaluation(copiedGame).WhiteToBlackRatio.blackFraction,
+        //             iteration % 2 == 0,
+        //             iteration == 0 ? copiedMove : null); //todo convert move to string for efficient storage
+        //
+        //         Interlocked.Increment(ref NumberOfNodes);
+        //
+        //         node.ChildPositions.Add(Recurse(childNode, iteration + 1));
+        //     });
+        //
+        //     node.Evaluation = isMax
+        //         ? node.ChildPositions.Max(x => x.Evaluation)
+        //         : node.ChildPositions.Min(x => x.Evaluation);
+        //
+        //     return node;
+        // }
+        //
+        // private static bool IsNodeTerminal()
+        // {
+        //     return false;
+        // }
     }
 }

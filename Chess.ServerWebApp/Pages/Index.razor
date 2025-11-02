@@ -1,0 +1,64 @@
+﻿@page "/"
+@using Chess.Engine.Logic
+@using Chess.Engine.Bot.Logic
+@using Chess.Engine.GameModels
+
+@if (Game != null)
+{
+    <div class="board">
+        @foreach (var row in SideToView == Side.White ? Enumerable.Range(0, 8) : Enumerable.Range(0, 8).Reverse())
+        {
+            <div class="row">
+                @foreach (var squareInRow in SideToView == Side.White ? Enumerable.Range(0, 8) : Enumerable.Range(0, 8).Reverse())
+                {
+                    <div @onclick="() => OnSquareClick((56 - (row * 8)) + squareInRow)" class="@((row + squareInRow) % 2 == 0 ? "square even-square" : "square odd-square")">
+                        @if (HighlightIndexes.Contains(Game.Board[(56 - (row * 8)) + squareInRow].BoardIndex))
+                        {
+                            <div class="square-highlight" />
+                        }
+
+                        @if (Game.Board[(56 - (row * 8)) + squareInRow].Piece != null)
+                        {
+                            <img class="piece-image" src="chess-piece-assets/@(Game.Board[(56 - (row * 8)) + squareInRow].Piece?.Side.ToString()[0] + "-" + Game.Board[(56 - (row * 8)) + squareInRow].Piece?.NotationCharacter).svg" />
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <button @onclick="SwitchSideToView">Switch side</button>
+
+    @* <div> *@
+    @*     <input type="range" id="MaxDepth" name="MaxDepth" min="1" max="3" @onchange="@(x => HandleSliderChange(x, "MaxDepth"))" /> *@
+    @*     <label for="MaxDepth">MaxDepth</label> *@
+    @* *@
+    @*     <input type="range" id="PieceValueScoreModifier" name="PieceValueScoreModifier" min="0" max="10" @onchange="@(x => HandleSliderChange(x, "PieceValueScoreModifier"))" /> *@
+    @*     <label for="PieceValueScoreModifier">PieceValueScoreModifier</label> *@
+    @* *@
+    @*     <input type="range" id="KingInCheckScoreModifier" name="KingInCheckScoreModifier" min="0" max="10" @onchange="@(x => HandleSliderChange(x, "KingInCheckScoreModifier"))" /> *@
+    @*     <label for="KingInCheckScoreModifier">KingInCheckScoreModifier</label> *@
+    @* *@
+    @*     <input type="range" id="PieceMovementOptionsScoreModifier" name="PieceMovementOptionsScoreModifier" min="0" max="10" @onchange="@(x => HandleSliderChange(x, "PieceMovementOptionsScoreModifier"))" /> *@
+    @*     <label for="PieceMovementOptionsScoreModifier">PieceMovementOptionsScoreModifier</label> *@
+    @* </div> *@
+
+    <p>Evaluation: @MinMaxTree.LatestMinMaxEvaluation</p>
+
+    <p>Node count: @MinMaxTree.NumberOfNodes</p>
+    <p>Pruned nodes: @TreeWalker.GetNumberOfPrunedNodes(MinMaxTree.LatestNode)</p>
+
+    <p>elapsed milliseconds: @MinMaxTree.ElapsedMilliseconds</p>
+
+    <p>Last error message: @LastErrorMessage</p>
+
+    <p>Last clicked piece square: @(LastSelectedPieceIndex == -1 ? "" : Game!.Board[LastSelectedPieceIndex].SquareNotation)</p>
+
+    <p>FEN: @FenConverter.GameToFenNotation(Game)</p>
+
+    <p>Check? @GameStateChecker.IsKingInCheck(Game)</p>
+
+    <p>Checkmate? @GameStateChecker.IsKingCheckmate(Game)</p>
+
+    <p>Stalemate? @GameStateChecker.IsStaleMate(Game)</p>
+}

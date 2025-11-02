@@ -2,23 +2,18 @@
 
 namespace Chess.Engine.Bot.Models
 {
-    internal class PositionNode
+    public class PositionNode
     {
         public List<PositionNode> ChildPositions { get; set; } = [];
         public string FenPosition { get; }
-        public decimal Evaluation { get; }
-        public bool IsMax { get; set; }
+        public int Evaluation { get; set; }
         public Move? Move { get; set; }
 
-        public decimal MinMaxedEvaluation => IsMax
-            ? ChildPositions.Max(x => x.Evaluation)
-            : ChildPositions.Min(x => x.Evaluation);
+        public bool IsStoppedDueToPruning { get; set; } = false;
 
-        public PositionNode(string fenPosition, decimal evaluation, bool isMax, Move? move)
+        public PositionNode(string fenPosition, Move? move)
         {
             FenPosition = fenPosition;
-            Evaluation = evaluation;
-            IsMax = isMax;
             Move = move;
         }
     }

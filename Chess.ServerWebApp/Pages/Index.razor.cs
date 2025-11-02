@@ -1,15 +1,17 @@
 ﻿using Chess.Engine.Bot.Logic;
 using Chess.Engine.GameModels;
 using Chess.Engine.Logic;
+using Microsoft.AspNetCore.Components;
 
-namespace Chess.WebApp.Pages
+namespace Chess.ServerWebApp.Pages
 {
-    public partial class ChessBoard
+    public partial class Index
     {
         public Game? Game { get; private set; } = null;
         public List<int>? HighlightIndexes { get; private set; } = [];
         public string? LastErrorMessage { get; set; }
         public int LastSelectedPieceIndex { get; set; } = -1;
+        public Side SideToView { get; set; } = Side.White;
 
         protected override void OnInitialized()
         {
@@ -68,7 +70,7 @@ namespace Chess.WebApp.Pages
 
             MoveHandler.ValidateAndExecuteMove(botMoveInThisGame, Game);
 
-            StateHasChanged();
+            await InvokeAsync(() => StateHasChanged());
         }
 
         private void SetHighlightSquareIndexes(int squareIndex)
@@ -78,6 +80,38 @@ namespace Chess.WebApp.Pages
             var possibleMoves = GameStateChecker.GetPossibleMovesForPieceOnSquare(square, Game);
 
             HighlightIndexes = possibleMoves.Select(x => x.Destination.BoardIndex).ToList();
+        }
+
+        private void HandleSliderChange(ChangeEventArgs changeEventArgs, string nameOfValueToUpdate)
+        {
+            if (!int.TryParse(((string)changeEventArgs.Value), out var value)) return;
+
+            Console.WriteLine($"setting {nameOfValueToUpdate} to {value}");
+
+            switch (nameOfValueToUpdate)
+            {
+                case "MaxDepth":
+                    MinMaxTree.MaxDepth = value;
+                    break;
+                case "KingInCheckScoreModifier":
+                    PositionEvaluator.KingInCheckScoreWeight = value;
+                    break;
+                case "PieceMovementOptionsScoreModifier":
+                    PositionEvaluator.PieceMovementOptionsScoreWeight = value;
+                    break;
+                case "PieceValueScoreModifier":
+                    PositionEvaluator.PieceValueScoreWeight = value;
+                    break;
+                default:
+                    throw new ArgumentException($"nameOfValueToUpdate: {nameOfValueToUpdate} is not known");
+            }
+        }
+
+        private void SwitchSideToView()
+        {
+            SideToView = SideToView == Side.White ? Side.Black : Side.White;
+
+            StateHasChanged();
         }
     }
 }
