@@ -63,7 +63,7 @@ namespace Chess.Engine.Bot.Logic
             var allPossibleMovesForAllPieceFromSide = SquareFinder.GetAllSquaresWithPiecesFromSide(game.Turn, game.Board)
                 .SelectMany(square => GameStateChecker.GetPossibleMovesForPieceOnSquare(square, game)).ToList();
 
-            node.Evaluation = isMaximizingPlayer ? -99999 : 99999;
+            node.Evaluation = isMaximizingPlayer ? int.MinValue : int.MaxValue;
 
             try
             {
@@ -105,7 +105,7 @@ namespace Chess.Engine.Bot.Logic
                     }
                 });
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException _)
             {
 
             }
@@ -117,57 +117,5 @@ namespace Chess.Engine.Bot.Logic
         {
             return GameStateChecker.IsStaleMate(game) || GameStateChecker.IsKingCheckmate(game);
         }
-
-
-        // private static PositionNode Recurse(PositionNode node, int iteration)
-        // {
-        //     if (iteration == MaxDepth)
-        //     {
-        //         return node;
-        //     }
-        //
-        //     var isMax = iteration % 2 == 0;
-        //
-        //     var game = FenConverter.FenNotationToGame(node.FenPosition);
-        //
-        //     var allPossibleMovesForAllPieceFromSide = SquareFinder.GetAllSquaresWithPiecesFromSide(game.Turn, game.Board)
-        //         .SelectMany(square => GameStateChecker.GetPossibleMovesForPieceOnSquare(square, game)).ToList();
-        //
-        //
-        //     if (IsNodeTerminal())
-        //     {
-        //         return node;
-        //     }
-        //     Console.WriteLine(allPossibleMovesForAllPieceFromSide.Count);
-        //
-        //     Parallel.ForEach(allPossibleMovesForAllPieceFromSide, move =>
-        //     {
-        //         var copiedGame = game.DeepCopy();
-        //         var copiedMove = move.DeepCopy(copiedGame.Board);
-        //
-        //         MoveHandler.ExecuteMove(copiedMove, copiedGame);
-        //
-        //         var childNode = new PositionNode(
-        //             FenConverter.GameToFenNotation(copiedGame),
-        //             PositionEvaluator.GetPositionEvaluation(copiedGame).WhiteToBlackRatio.blackFraction,
-        //             iteration % 2 == 0,
-        //             iteration == 0 ? copiedMove : null); //todo convert move to string for efficient storage
-        //
-        //         Interlocked.Increment(ref NumberOfNodes);
-        //
-        //         node.ChildPositions.Add(Recurse(childNode, iteration + 1));
-        //     });
-        //
-        //     node.Evaluation = isMax
-        //         ? node.ChildPositions.Max(x => x.Evaluation)
-        //         : node.ChildPositions.Min(x => x.Evaluation);
-        //
-        //     return node;
-        // }
-        //
-        // private static bool IsNodeTerminal()
-        // {
-        //     return false;
-        // }
     }
 }

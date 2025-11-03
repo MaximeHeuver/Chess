@@ -6,10 +6,11 @@ namespace Chess.Engine.Bot.Logic
 {
     public class PositionEvaluator
     {
-        public static int PieceValueScoreWeight { get; set; } = 50;
-        public static int PieceMovementOptionsScoreWeight { get; set; } = 10;
+        public static int PieceValueScoreWeight { get; set; } = 10;
+        public static int PieceMovementOptionsScoreWeight { get; set; } = 5;
         public static int KingInCheckScoreWeight { get; set; } = 1;
-        public static int CenterControlScoreWeight { get; set; } = 40;
+        public static int CenterControlScoreWeight { get; set; } = 5;
+        public static int AttackedScoreWeight { get; set; } = 40;
 
         private const double CenterX = 3.5;
         private const double CenterY = 3.5;
@@ -35,10 +36,22 @@ namespace Chess.Engine.Bot.Logic
             var totalAmountOfReachableSquares = allPossibleMoves.Count() * PieceMovementOptionsScoreWeight;
 
             var centerControlScore = GetCenterControlScore(allPossibleMoves) * CenterControlScoreWeight;
-            //
-            // var ownKingInCheckScore = GameStateChecker.IsKingInCheck(game, side) ? -KingInCheckScoreWeight : 0;
-            //
-            // var enemyKingInCheckScore = GameStateChecker.IsKingInCheck(game, side == Side.White ? Side.Black : Side.White) ? KingInCheckScoreWeight : 0;
+
+            var attackedScore = 0;
+
+            foreach (var square in allSquaresWithPiecesFromSide)
+            {
+                var amountOfAttackers = GameStateChecker.GetAmountOfAttackersToSquare(square, game.Board, side == Side.White ? Side.Black : Side.White);
+                var amountOfDefenders = GameStateChecker.GetAmountOfAttackersToSquare(square, game.Board, side);
+
+                attackedScore += amountOfDefenders - amountOfAttackers;
+            }
+
+            attackedScore *= AttackedScoreWeight;
+
+            var ownKingInCheckScore = GameStateChecker.IsKingInCheck(game, side) ? -KingInCheckScoreWeight : 0;
+
+            var enemyKingInCheckScore = GameStateChecker.IsKingInCheck(game, side == Side.White ? Side.Black : Side.White) ? KingInCheckScoreWeight : 0;
 
             var checkMateScore = GameStateChecker.IsKingCheckmate(game)
                 ? game.Turn == side ? -99999 : 99999
@@ -53,11 +66,12 @@ namespace Chess.Engine.Bot.Logic
             //captures
 
             return pieceValues +
-            totalAmountOfReachableSquares;
-            // ownKingInCheckScore +
-            // enemyKingInCheckScore +
-            // checkMateScore +
-            // centerControlScore;
+                   totalAmountOfReachableSquares +
+                   attackedScore +
+                   ownKingInCheckScore +
+                   enemyKingInCheckScore +
+                   checkMateScore +
+                   centerControlScore;
         }
 
         private static int GetCenterControlScore(List<Move> allPossibleMoves)

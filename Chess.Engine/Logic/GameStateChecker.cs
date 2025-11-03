@@ -97,6 +97,59 @@ namespace Chess.Engine.Logic
             return false;
         }
 
+        public static int GetAmountOfAttackersToSquare(Square square, List<Square> board, Side side)
+        {
+            return GetAmountOfAttackersToSquareFromPiece<Queen>(square, board, side) +
+                   GetAmountOfAttackersToSquareFromPiece<Rook>(square, board, side) +
+                   GetAmountOfAttackersToSquareFromPiece<Bishop>(square, board, side) +
+                   GetAmountOfAttackersToSquareFromPiece<Knight>(square, board, side) +
+                   GetAmountOfAttackersToSquareFromPiece<King>(square, board, side) +
+                   GetAmountOfAttackersToSquareFromPiece<Pawn>(square, board, side);
+        }
+
+        private static int GetAmountOfAttackersToSquareFromPiece<T>(Square square, IReadOnlyList<Square> board, Side side)
+            where T : Piece
+        {
+            var amountOfAttackers = 0;
+
+            Piece attackPieceType =
+                (T)Activator.CreateInstance(typeof(T), [side == Side.White ? Side.Black : Side.White])!;
+
+            foreach (var pieceMovementVector in attackPieceType.MovementVectors.Where(x =>
+                         x.MovementCaptureOption is MovementCaptureOption.Both or MovementCaptureOption.CaptureOnly))
+            {
+                var iteration = 1;
+
+                while (true)
+                {
+                    var oppositeVector = pieceMovementVector.Vector * -1;
+
+                    var newIndex = square.BoardIndex + oppositeVector * iteration;
+
+                    if (!IsBoardIndexReachable(square, oppositeVector, newIndex))
+                    {
+                        break;
+                    }
+
+                    var piece = board[newIndex].Piece;
+
+                    if (piece is T && piece.Side != side)
+                    {
+                        amountOfAttackers++;
+                    }
+
+                    if (piece != null || !attackPieceType.CanPieceSlide)
+                    {
+                        break;
+                    }
+
+                    iteration++;
+                }
+            }
+
+            return amountOfAttackers;
+        }
+
         public static bool IsStaleMate(Game game)
         {
             var numberOfOccurrencesOfLatestPosition = game.allPositionsSinceLastCapture.Count(x =>
