@@ -11,7 +11,7 @@ namespace Chess.Engine.Bot.Logic
         public static int NumberOfNodes = 0;
         public static int NumberOfCancelledLoops = 0;
         public static int LatestMinMaxEvaluation = 0;
-        public static int MaxDepth { get; set; } = 2;
+        public static int MaxDepth { get; set; } = 3;
         public static PositionNode? LatestNode { get; set; }
 
         public static Move GetBestMoveForBlack(Game game)

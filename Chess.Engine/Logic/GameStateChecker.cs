@@ -133,7 +133,7 @@ namespace Chess.Engine.Logic
 
                     var piece = board[newIndex].Piece;
 
-                    if (piece is T && piece.Side != side)
+                    if (piece is T && piece.Side == attackPieceType.Side)
                     {
                         amountOfAttackers++;
                     }

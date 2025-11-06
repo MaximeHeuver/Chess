@@ -6,11 +6,11 @@ namespace Chess.Engine.Bot.Logic
 {
     public class PositionEvaluator
     {
-        public static int PieceValueScoreWeight { get; set; } = 10;
+        public static int PieceValueScoreWeight { get; set; } = 20;
         public static int PieceMovementOptionsScoreWeight { get; set; } = 5;
-        public static int KingInCheckScoreWeight { get; set; } = 1;
-        public static int CenterControlScoreWeight { get; set; } = 5;
-        public static int AttackedScoreWeight { get; set; } = 40;
+        public static int KingInCheckScoreWeight { get; set; } = 5;
+        public static int CenterControlScoreWeight { get; set; } = 1;
+        public static int AttackedScoreWeight { get; set; } = 15;
 
         private const double CenterX = 3.5;
         private const double CenterY = 3.5;
@@ -41,8 +41,8 @@ namespace Chess.Engine.Bot.Logic
 
             foreach (var square in allSquaresWithPiecesFromSide)
             {
-                var amountOfAttackers = GameStateChecker.GetAmountOfAttackersToSquare(square, game.Board, side == Side.White ? Side.Black : Side.White);
-                var amountOfDefenders = GameStateChecker.GetAmountOfAttackersToSquare(square, game.Board, side);
+                var amountOfDefenders = GameStateChecker.GetAmountOfAttackersToSquare(square, game.Board, side == Side.White ? Side.Black : Side.White);
+                var amountOfAttackers = GameStateChecker.GetAmountOfAttackersToSquare(square, game.Board, side);
 
                 attackedScore += amountOfDefenders - amountOfAttackers;
             }
@@ -56,14 +56,6 @@ namespace Chess.Engine.Bot.Logic
             var checkMateScore = GameStateChecker.IsKingCheckmate(game)
                 ? game.Turn == side ? -99999 : 99999
                 : 0;
-
-            // var centerControlScore = GetCenterControlScore(allPossibleMoves);
-
-            //checkmate
-
-            //stalemate
-
-            //captures
 
             return pieceValues +
                    totalAmountOfReachableSquares +
